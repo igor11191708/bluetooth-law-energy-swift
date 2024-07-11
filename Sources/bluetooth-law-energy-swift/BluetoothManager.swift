@@ -5,13 +5,22 @@ import CoreBluetooth
 @MainActor
 public class BluetoothManager: NSObject, ObservableObject {
     
-    @Published public var showAlert = false
-    @Published public var isBluetoothReady = false
+    @Published public var showPowerAlert = false
+    
+    @Published public var showAuthorizeAlert = false
+    
+    @Published public var isAuthorized = false
+    
+    @Published public var isPowered = false
     
     private let state = State()
+    
     private let stream = Stream()
+    
     private let centralManager: CBCentralManager
+    
     private let delegateHandler: BluetoothDelegateHandler
+    
     private var cancellables: Set<AnyCancellable> = []
     
     // MARK: - Life cycle
@@ -89,17 +98,23 @@ public class BluetoothManager: NSObject, ObservableObject {
     
     private func handleStateAction(_ action: State.Action) {
         switch action {
-        case .powerOn:
-            self.showAlert = true
-        case .authorize:
-            startScanning() // This triggers the authorization prompt
+            case .powerOn:
+                showPowerAlert = true
+            case .requestPermission:
+                startScanning() // This triggers the authorization prompt
+            case .authorizeInSettings:
+                self.showAuthorizeAlert = true
         }
     }
     
     private func handleStateAndSubscriberCount(subscriberCount: Int) {
-        let isBluetoothReady = centralManager.state == .poweredOn && CBCentralManager.authorization == .allowedAlways
+       
+        self.isAuthorized = CBCentralManager.authorization == .allowedAlways
+        self.isPowered = centralManager.state == .poweredOn
+        let isBluetoothReady = isPowered && isAuthorized
         
-        self.isBluetoothReady = isBluetoothReady
+        
+        if isPowered{ showPowerAlert = false }
         
         if subscriberCount == 0 {
             stopScanning()
@@ -159,7 +174,8 @@ public class BluetoothManager: NSObject, ObservableObject {
         
         public enum Action {
             case powerOn
-            case authorize
+            case requestPermission
+            case authorizeInSettings
         }
         
         func updateState(_ state: CBManagerState) {
@@ -168,6 +184,8 @@ public class BluetoothManager: NSObject, ObservableObject {
                 checkBluetoothAuthorization()
             case .poweredOff:
                 actionSubject.send(.powerOn)
+            case .unauthorized:
+                checkBluetoothAuthorization()
             default:
                 break
             }
@@ -177,8 +195,10 @@ public class BluetoothManager: NSObject, ObservableObject {
             switch CBCentralManager.authorization {
             case .allowedAlways:
                 break
-            case .restricted, .denied, .notDetermined:
-                actionSubject.send(.authorize)
+            case .restricted, .denied:
+                actionSubject.send(.authorizeInSettings)
+            case .notDetermined:
+                actionSubject.send(.requestPermission)
             @unknown default:
                 break
             }
