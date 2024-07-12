@@ -48,20 +48,9 @@ public class BluetoothManager: NSObject, ObservableObject {
             .receive(on: DispatchQueue.main)
             .eraseToAnyPublisher()
         
-        let stateActionPublisher = state.actionSubject
-            .receive(on: DispatchQueue.main)
-            .eraseToAnyPublisher()
-        
         let subscriberCountPublisher = stream.subscriberCountSubject
             .receive(on: DispatchQueue.main)
             .eraseToAnyPublisher()
-        
-        statePublisher
-            .sink { [weak self] state in
-                print(state.rawValue, "test")
-                self?.handleStateChange(state)
-            }
-            .store(in: &cancellables)
         
         peripheralPublisher
             .sink { [weak self] peripherals in
@@ -69,46 +58,41 @@ public class BluetoothManager: NSObject, ObservableObject {
             }
             .store(in: &cancellables)
         
-        stateActionPublisher
-            .sink { [weak self] action in
-                self?.handleStateAction(action)
-            }
-            .store(in: &cancellables)
         
         Publishers.CombineLatest(statePublisher, subscriberCountPublisher)
             .sink { [weak self] state, subscriberCount in
-                self?.handleStateAndSubscriberCount(subscriberCount: subscriberCount)
+                self?.checkForScan(state, subscriberCount)
             }
             .store(in: &cancellables)
     }
     
-    private func handleStateChange(_ state: CBManagerState) {
-        self.state.updateState(state)
-    }
     
     private func handlePeripheralChange(_ peripherals: [CBPeripheral]) {
         stream.updatePeripherals(peripherals)
     }
     
-    private func handleStateAction(_ action: State.Action) {
-        switch action {
-        case .power:
-            showPowerAlert = true
-        case .requestPermission:
-            startScanning() // This triggers the authorization prompt
-        case .authorize:
-            self.showAuthorizeAlert = true
-        }
+    private var checkIfBluetoothReady : Bool{
+        
+        isAuthorized = State.isBluetoothAuthorized
+        showAuthorizeAlert = !isAuthorized
+        
+        
+        isPowered = State.isBluetoothPoweredOn(for: centralManager)
+        showPowerAlert = isAuthorized && !isPowered
+        
+        return isPowered && isAuthorized
     }
     
-    private func handleStateAndSubscriberCount(subscriberCount: Int) {
-        self.isAuthorized = State.isBluetoothAuthorized
-        self.isPowered = State.isBluetoothPoweredOn(for: centralManager)
-        let isBluetoothReady = isPowered && isAuthorized
+    private func checkForScan(_ state: CBManagerState,_ subscriberCount: Int) {
+
+        guard checkIfBluetoothReady else{
+            stopScanning()
+            return
+        }
         
         if subscriberCount == 0 {
             stopScanning()
-        } else if subscriberCount > 0 && isBluetoothReady {
+        } else if subscriberCount > 0 {
             startScanning()
         }
     }
@@ -180,47 +164,15 @@ public class BluetoothManager: NSObject, ObservableObject {
     }
     
     private class State {
-        let actionSubject = PassthroughSubject<BluetoothManager.State.Action, Never>()
-        
-        public enum Action {
-            case power
-            case requestPermission
-            case authorize
-        }
-        
+
         static var isBluetoothAuthorized: Bool {
             return CBCentralManager.authorization == .allowedAlways
         }
         
-        static func isBluetoothPoweredOn(for centralManager: CBCentralManager) -> Bool {
-            return centralManager.state == .poweredOn
+        static func isBluetoothPoweredOn(for manager: CBCentralManager) -> Bool {
+            return manager.state == .poweredOn
         }
-        
-        func updateState(_ state: CBManagerState) {
-            switch state {
-            case .poweredOn:
-                checkBluetoothAuthorization()
-            case .poweredOff:
-                actionSubject.send(.power)
-            case .unauthorized:
-                checkBluetoothAuthorization()
-            default:
-                break
-            }
-        }
-        
-        private func checkBluetoothAuthorization() {
-            switch CBCentralManager.authorization {
-            case .allowedAlways:
-                break
-            case .restricted, .denied:
-                actionSubject.send(.authorize)
-            case .notDetermined:
-                actionSubject.send(.requestPermission)
-            @unknown default:
-                break
-            }
-        }
+
     }
 }
 
