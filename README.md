@@ -1,5 +1,7 @@
 # Bluetooth Low Energy Service
 
+[![](https://img.shields.io/endpoint?url=https%3A%2F%2Fswiftpackageindex.com%2Fapi%2Fpackages%2FThe-Igor%2Fbluetooth-law-energy-swift%2Fbadge%3Ftype%3Dswift-versions)](https://swiftpackageindex.com/The-Igor/bluetooth-law-energy-swift) [![](https://img.shields.io/endpoint?url=https%3A%2F%2Fswiftpackageindex.com%2Fapi%2Fpackages%2FThe-Igor%2Fbluetooth-law-energy-swift%2Fbadge%3Ftype%3Dplatforms)](https://swiftpackageindex.com/The-Igor/bluetooth-law-energy-swift)
+
 ## Description
 
 `BluetoothLEManager` is a class for managing Bluetooth Low Energy (BLE) operations. It is designed to be used in SwiftUI applications, handling tasks such as checking Bluetooth authorization and power status, and scanning for BLE peripherals.
