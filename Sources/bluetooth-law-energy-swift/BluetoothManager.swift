@@ -2,22 +2,40 @@ import SwiftUI
 import Combine
 import CoreBluetooth
 
+
 @MainActor
 public class BluetoothManager: NSObject, ObservableObject {
     
+    public typealias StatePublisher = AnyPublisher<CBManagerState, Never>
+    
+    public typealias PeripheralPublisher = AnyPublisher<[CBPeripheral], Never>
+   
     @Published public var isAuthorized = false
+    
     @Published public var isPowered = false
     
+    public var getStatePublisher : StatePublisher { delegateHandler.statePublisher }
+    
+    public var getPeripheralPublisher : PeripheralPublisher{ delegateHandler.peripheralPublisher }
+    
+    // MARK: - Private properties
+    
+    private typealias Delegate = BluetoothDelegateHandler
+    
     private let state = State()
+    
     private let stream = Stream()
+    
     private let centralManager: CBCentralManager
-    private let delegateHandler: BluetoothDelegateHandler
+    
+    private let delegateHandler: Delegate
+    
     private var cancellables: Set<AnyCancellable> = []
     
     // MARK: - Life cycle
     
     public override init() {
-        delegateHandler = BluetoothDelegateHandler()
+        delegateHandler = Delegate()
         centralManager = CBCentralManager(delegate: delegateHandler, queue: nil)
         super.init()
         setupSubscriptions()
@@ -30,30 +48,21 @@ public class BluetoothManager: NSObject, ObservableObject {
     
     // MARK: - Public API
     
-    public func peripheralsStream() -> AsyncStream<[CBPeripheral]> {
+    public var peripheralsStream : AsyncStream<[CBPeripheral]> {
         return stream.peripheralsStream()
     }
     
     // MARK: - Private Methods
     
     private func setupSubscriptions() {
-        let statePublisher = delegateHandler.stateSubject
-            .dropFirstIfPoweredOff()
-            .receiveOnMainAndEraseToAnyPublisher()
         
-        let peripheralPublisher = delegateHandler.peripheralSubject
-            .receiveOnMainAndEraseToAnyPublisher()
-        
-        let subscriberCountPublisher = stream.subscriberCountSubject
-            .receiveOnMainAndEraseToAnyPublisher()
-        
-        peripheralPublisher
+        getPeripheralPublisher
             .sink { [weak self] peripherals in
                 self?.handlePeripheralChange(peripherals)
             }
             .store(in: &cancellables)
         
-        Publishers.CombineLatest(statePublisher, subscriberCountPublisher)
+        Publishers.CombineLatest(getStatePublisher, stream.subscriberCountPublisher)
             .sink { [weak self] state, subscriberCount in
                 self?.checkForScan(state, subscriberCount)
             }
@@ -100,7 +109,12 @@ public class BluetoothManager: NSObject, ObservableObject {
     
     private class Stream {
         
-        public let subscriberCountSubject = PassthroughSubject<Int, Never>()
+        public var subscriberCountPublisher : AnyPublisher<Int, Never>{
+            subscriberCountSubject
+                .receiveOnMainAndEraseToAnyPublisher()
+        }
+        
+        private let subscriberCountSubject = PassthroughSubject<Int, Never>()
         
         private typealias PeripheralsContinuation = AsyncStream<[CBPeripheral]>.Continuation
         
@@ -165,6 +179,35 @@ public class BluetoothManager: NSObject, ObservableObject {
         static func isBluetoothPoweredOn(for manager: CBCentralManager) -> Bool {
             return manager.state == .poweredOn
         }
-
     }
+    
+    class BluetoothDelegateHandler: NSObject, CBCentralManagerDelegate {
+        
+        private let stateSubject = PassthroughSubject<CBManagerState, Never>()
+        
+        private let peripheralSubject = CurrentValueSubject<[CBPeripheral], Never>([])
+       
+        public var statePublisher : StatePublisher{
+            stateSubject
+                .dropFirstIfPoweredOff()
+                .receiveOnMainAndEraseToAnyPublisher()
+        }
+        
+        public var peripheralPublisher : PeripheralPublisher{
+            peripheralSubject
+                .receiveOnMainAndEraseToAnyPublisher()
+        }
+        
+       public func centralManagerDidUpdateState(_ central: CBCentralManager) {
+           stateSubject.send(central.state) // Send state updates through the subject
+       }
+       
+       public func centralManager(_ central: CBCentralManager, didDiscover peripheral: CBPeripheral, advertisementData: [String : Any], rssi RSSI: NSNumber) {
+           var peripherals = peripheralSubject.value
+           if !peripherals.contains(where: { $0.identifier == peripheral.identifier }) {
+               peripherals.append(peripheral)
+               peripheralSubject.send(peripherals)
+           }
+       }
+   }
 }

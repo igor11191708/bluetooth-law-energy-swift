@@ -1,1 +1,1 @@
-# Low Energy Bluetooth manager
+# Bluetooth Low Energy Service
