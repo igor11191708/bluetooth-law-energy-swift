@@ -5,8 +5,6 @@ import CoreBluetooth
 @MainActor
 public class BluetoothManager: NSObject, ObservableObject {
     
-    @Published public var showPowerAlert = false
-    @Published public var showAuthorizeAlert = false
     @Published public var isAuthorized = false
     @Published public var isPowered = false
     
@@ -58,7 +56,6 @@ public class BluetoothManager: NSObject, ObservableObject {
             }
             .store(in: &cancellables)
         
-        
         Publishers.CombineLatest(statePublisher, subscriberCountPublisher)
             .sink { [weak self] state, subscriberCount in
                 self?.checkForScan(state, subscriberCount)
@@ -74,11 +71,8 @@ public class BluetoothManager: NSObject, ObservableObject {
     private var checkIfBluetoothReady : Bool{
         
         isAuthorized = State.isBluetoothAuthorized
-        showAuthorizeAlert = !isAuthorized
-        
         
         isPowered = State.isBluetoothPoweredOn(for: centralManager)
-        showPowerAlert = isAuthorized && !isPowered
         
         return isPowered && isAuthorized
     }
