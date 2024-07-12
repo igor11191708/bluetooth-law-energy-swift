@@ -8,7 +8,7 @@ This manager class is `ObservableObject`, which makes it easy to integrate with 
 
 ## SwiftUI example
 
-For a complete example of using `BluetoothLEManager` in a SwiftUI application, please follow the [Example Project](https://example.com/repo).
+For a complete example of using `BluetoothLEManager` in a SwiftUI application, please follow the link [swiftui example](https://github.com/The-Igor/bluetooth-law-energy_example).
 
 ## Supported Platforms
 
