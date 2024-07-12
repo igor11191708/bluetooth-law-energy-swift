@@ -6,30 +6,22 @@ import CoreBluetooth
 public class BluetoothManager: NSObject, ObservableObject {
     
     @Published public var showPowerAlert = false
-    
     @Published public var showAuthorizeAlert = false
-    
     @Published public var isAuthorized = false
-    
     @Published public var isPowered = false
     
     private let state = State()
-    
     private let stream = Stream()
-    
     private let centralManager: CBCentralManager
-    
     private let delegateHandler: BluetoothDelegateHandler
-    
     private var cancellables: Set<AnyCancellable> = []
     
     // MARK: - Life cycle
     
     public override init() {
-        self.delegateHandler = BluetoothDelegateHandler()
-        self.centralManager = CBCentralManager(delegate: nil, queue: nil)
+        delegateHandler = BluetoothDelegateHandler()
+        centralManager = CBCentralManager(delegate: delegateHandler, queue: nil)
         super.init()
-        self.centralManager.delegate = delegateHandler
         setupSubscriptions()
         print("BluetoothManager initialized on \(Date())")
     }
@@ -48,6 +40,7 @@ public class BluetoothManager: NSObject, ObservableObject {
     
     private func setupSubscriptions() {
         let statePublisher = delegateHandler.stateSubject
+            .dropFirstIfPoweredOff()
             .receive(on: DispatchQueue.main)
             .eraseToAnyPublisher()
         
@@ -65,6 +58,7 @@ public class BluetoothManager: NSObject, ObservableObject {
         
         statePublisher
             .sink { [weak self] state in
+                print(state.rawValue, "test")
                 self?.handleStateChange(state)
             }
             .store(in: &cancellables)
@@ -98,23 +92,19 @@ public class BluetoothManager: NSObject, ObservableObject {
     
     private func handleStateAction(_ action: State.Action) {
         switch action {
-            case .powerOn:
-                showPowerAlert = true
-            case .requestPermission:
-                startScanning() // This triggers the authorization prompt
-            case .authorizeInSettings:
-                self.showAuthorizeAlert = true
+        case .power:
+            showPowerAlert = true
+        case .requestPermission:
+            startScanning() // This triggers the authorization prompt
+        case .authorize:
+            self.showAuthorizeAlert = true
         }
     }
     
     private func handleStateAndSubscriberCount(subscriberCount: Int) {
-       
-        self.isAuthorized = CBCentralManager.authorization == .allowedAlways
-        self.isPowered = centralManager.state == .poweredOn
+        self.isAuthorized = State.isBluetoothAuthorized
+        self.isPowered = State.isBluetoothPoweredOn(for: centralManager)
         let isBluetoothReady = isPowered && isAuthorized
-        
-        
-        if isPowered{ showPowerAlert = false }
         
         if subscriberCount == 0 {
             stopScanning()
@@ -133,35 +123,55 @@ public class BluetoothManager: NSObject, ObservableObject {
     
     // MARK: - Nested Classes
     
-    private class Stream: ObservableObject {
+    private class Stream {
+        
+        public let subscriberCountSubject = PassthroughSubject<Int, Never>()
+        
+        private typealias PeripheralsContinuation = AsyncStream<[CBPeripheral]>.Continuation
+        
         private var discoveredPeripherals: [CBPeripheral] = []
-        private var subscribers: [UUID: AsyncStream<[CBPeripheral]>.Continuation] = [:]
+        
+        private var subscribers: [UUID: PeripheralsContinuation] = [:]
+        
         private let queue = DispatchQueue(label: "BluetoothManagerQueue", attributes: .concurrent)
-        let subscriberCountSubject = PassthroughSubject<Int, Never>()
+        
+        private var getID : UUID { .init() }
+        
+        // MARK: - API
         
         public func peripheralsStream() -> AsyncStream<[CBPeripheral]> {
             return AsyncStream { continuation in
                 queue.async(flags: .barrier) {
-                    let subscriberID = UUID()
-                    self.subscribers[subscriberID] = continuation
-                    self.subscriberCountSubject.send(self.subscribers.count)
-                    continuation.onTermination = { [weak self] _ in
-                        self?.queue.async(flags: .barrier) {
-                      
-                            self?.subscribers.removeValue(forKey: subscriberID)
-                            self?.subscriberCountSubject.send(self?.subscribers.count ?? 0)
-                        }
-                    }
+                    let subscriberID = self.getID
+                    self.initializeSubscriber(with: subscriberID, and: continuation)
+                    self.onTerminateSubscriber(with: subscriberID, and: continuation)
                 }
             }
         }
         
-        func updatePeripherals(_ peripherals: [CBPeripheral]) {
-                self.discoveredPeripherals = peripherals
-                self.updateSubscribers()
+        public func updatePeripherals(_ peripherals: [CBPeripheral]) {
+            discoveredPeripherals = peripherals
+            notifySubscribers()
         }
         
-        private func updateSubscribers() {
+        // MARK: - Private methods
+        
+        private func initializeSubscriber(with id: UUID, and continuation: PeripheralsContinuation) {
+            subscribers[id] = continuation
+            continuation.yield(discoveredPeripherals)
+            subscriberCountSubject.send(subscribers.count)
+        }
+        
+        private func onTerminateSubscriber(with id: UUID, and continuation: PeripheralsContinuation) {
+            continuation.onTermination = { [weak self] _ in
+                self?.queue.async(flags: .barrier) {
+                    self?.subscribers.removeValue(forKey: id)
+                    self?.subscriberCountSubject.send(self?.subscribers.count ?? 0)
+                }
+            }
+        }
+        
+        private func notifySubscribers() {
             let currentPeripherals = discoveredPeripherals
             for continuation in subscribers.values {
                 continuation.yield(currentPeripherals)
@@ -169,13 +179,21 @@ public class BluetoothManager: NSObject, ObservableObject {
         }
     }
     
-    private class State: ObservableObject {
+    private class State {
         let actionSubject = PassthroughSubject<BluetoothManager.State.Action, Never>()
         
         public enum Action {
-            case powerOn
+            case power
             case requestPermission
-            case authorizeInSettings
+            case authorize
+        }
+        
+        static var isBluetoothAuthorized: Bool {
+            return CBCentralManager.authorization == .allowedAlways
+        }
+        
+        static func isBluetoothPoweredOn(for centralManager: CBCentralManager) -> Bool {
+            return centralManager.state == .poweredOn
         }
         
         func updateState(_ state: CBManagerState) {
@@ -183,7 +201,7 @@ public class BluetoothManager: NSObject, ObservableObject {
             case .poweredOn:
                 checkBluetoothAuthorization()
             case .poweredOff:
-                actionSubject.send(.powerOn)
+                actionSubject.send(.power)
             case .unauthorized:
                 checkBluetoothAuthorization()
             default:
@@ -196,7 +214,7 @@ public class BluetoothManager: NSObject, ObservableObject {
             case .allowedAlways:
                 break
             case .restricted, .denied:
-                actionSubject.send(.authorizeInSettings)
+                actionSubject.send(.authorize)
             case .notDetermined:
                 actionSubject.send(.requestPermission)
             @unknown default:
@@ -220,5 +238,19 @@ public class BluetoothDelegateHandler: NSObject, CBCentralManagerDelegate {
             peripherals.append(peripheral)
             peripheralSubject.send(peripherals)
         }
+    }
+}
+
+extension Publisher where Output == CBManagerState, Failure == Never {
+    func dropFirstIfPoweredOff() -> AnyPublisher<CBManagerState, Never> {
+        self.scan((0, CBManagerState.unknown)) { acc, newState in
+            let (count, _) = acc
+            return (count + 1, newState)
+        }
+        .drop { (count, state) in
+            return count == 1 && state == .poweredOff
+        }
+        .map { $0.1 } // Extract the actual CBManagerState value from the tuple
+        .eraseToAnyPublisher()
     }
 }
