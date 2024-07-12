@@ -1,39 +1,61 @@
-import SwiftUI
+//
+//  BluetoothLEManager.swift
+//
+//
+//  Created by Igor  on 12.07.24.
+//
+
 import Combine
 import CoreBluetooth
 
-
+/// A manager class for handling Bluetooth Low Energy (BLE) operations, implementing ObservableObject.
 @MainActor
-public class BluetoothManager: NSObject, ObservableObject {
+public class BluetoothLEManager: NSObject, ObservableObject {
     
+    /// A typealias for the state publisher.
     public typealias StatePublisher = AnyPublisher<CBManagerState, Never>
     
+    /// A typealias for the peripheral publisher.
     public typealias PeripheralPublisher = AnyPublisher<[CBPeripheral], Never>
-   
+    
+    /// A published property to indicate if Bluetooth is authorized.
     @Published public var isAuthorized = false
     
+    /// A published property to indicate if Bluetooth is powered on.
     @Published public var isPowered = false
+
+    /// A published property to indicate if scanning for peripherals is ongoing.
+    @Published public var isScanning = false
     
-    public var getStatePublisher : StatePublisher { delegateHandler.statePublisher }
+    /// A computed property to get the state publisher from the delegate handler.
+    public var getStatePublisher: StatePublisher { delegateHandler.statePublisher }
     
-    public var getPeripheralPublisher : PeripheralPublisher{ delegateHandler.peripheralPublisher }
+    /// A computed property to get the peripheral publisher from the delegate handler.
+    public var getPeripheralPublisher: PeripheralPublisher { delegateHandler.peripheralPublisher }
     
     // MARK: - Private properties
     
+    /// A typealias for the delegate handler.
     private typealias Delegate = BluetoothDelegateHandler
     
-    private let state = State()
+    /// An instance of the State struct for Bluetooth state checks.
+    private let state = BluetoothLEManager.State()
     
+    /// An instance of the Stream class to manage peripheral streams.
     private let stream = Stream()
     
+    /// The central manager for managing BLE operations.
     private let centralManager: CBCentralManager
     
+    /// The delegate handler for handling central manager delegate methods.
     private let delegateHandler: Delegate
     
+    /// A set of AnyCancellable to hold Combine subscriptions.
     private var cancellables: Set<AnyCancellable> = []
     
     // MARK: - Life cycle
     
+    /// Initializes a new instance of the BluetoothLEManager.
     public override init() {
         delegateHandler = Delegate()
         centralManager = CBCentralManager(delegate: delegateHandler, queue: nil)
@@ -42,18 +64,23 @@ public class BluetoothManager: NSObject, ObservableObject {
         print("BluetoothManager initialized on \(Date())")
     }
     
+    /// Deinitializes the BluetoothLEManager.
     deinit {
         print("BluetoothManager deinitialized")
     }
     
     // MARK: - Public API
     
-    public var peripheralsStream : AsyncStream<[CBPeripheral]> {
+    /// Provides an asynchronous stream of discovered Bluetooth peripherals.
+    ///
+    /// - Returns: An `AsyncStream` of an array of `CBPeripheral` objects.
+    public var peripheralsStream: AsyncStream<[CBPeripheral]> {
         return stream.peripheralsStream()
     }
     
     // MARK: - Private Methods
     
+    /// Sets up Combine subscriptions for state and peripheral updates.
     private func setupSubscriptions() {
         
         getPeripheralPublisher
@@ -69,12 +96,15 @@ public class BluetoothManager: NSObject, ObservableObject {
             .store(in: &cancellables)
     }
     
-    
+    /// Handles changes to the discovered peripherals.
+    ///
+    /// - Parameter peripherals: An array of discovered `CBPeripheral` objects.
     private func handlePeripheralChange(_ peripherals: [CBPeripheral]) {
         stream.updatePeripherals(peripherals)
     }
     
-    private var checkIfBluetoothReady : Bool{
+    /// A computed property to check if Bluetooth is ready (authorized and powered on).
+    private var checkIfBluetoothReady: Bool {
         
         isAuthorized = State.isBluetoothAuthorized
         
@@ -83,9 +113,14 @@ public class BluetoothManager: NSObject, ObservableObject {
         return isPowered && isAuthorized
     }
     
-    private func checkForScan(_ state: CBManagerState,_ subscriberCount: Int) {
+    /// Checks the state and subscriber count to determine if scanning should start or stop.
+    ///
+    /// - Parameters:
+    ///   - state: The current state of the central manager.
+    ///   - subscriberCount: The current number of subscribers.
+    private func checkForScan(_ state: CBManagerState, _ subscriberCount: Int) {
 
-        guard checkIfBluetoothReady else{
+        guard checkIfBluetoothReady else {
             stopScanning()
             return
         }
@@ -97,117 +132,15 @@ public class BluetoothManager: NSObject, ObservableObject {
         }
     }
     
+    /// Starts scanning for Bluetooth peripherals.
     private func startScanning() {
+        isScanning = true
         centralManager.scanForPeripherals(withServices: nil, options: nil)
     }
     
+    /// Stops scanning for Bluetooth peripherals.
     private func stopScanning() {
+        isScanning = false
         centralManager.stopScan()
     }
-    
-    // MARK: - Nested Classes
-    
-    private class Stream {
-        
-        public var subscriberCountPublisher : AnyPublisher<Int, Never>{
-            subscriberCountSubject
-                .receiveOnMainAndEraseToAnyPublisher()
-        }
-        
-        private let subscriberCountSubject = PassthroughSubject<Int, Never>()
-        
-        private typealias PeripheralsContinuation = AsyncStream<[CBPeripheral]>.Continuation
-        
-        private var discoveredPeripherals: [CBPeripheral] = []
-        
-        private var subscribers: [UUID: PeripheralsContinuation] = [:]
-        
-        private let queue = DispatchQueue(label: "BluetoothManagerStreamQueue", attributes: .concurrent)
-        
-        private var getID : UUID { .init() }
-        
-        // MARK: - API
-        
-        public func peripheralsStream() -> AsyncStream<[CBPeripheral]> {
-            return AsyncStream { [weak self] continuation in
-                self?.queue.async(flags: .barrier) {
-                    guard let self = self else { return }
-                    let subscriberID = self.getID
-                    self.initializeSubscriber(with: subscriberID, and: continuation)
-                    self.onTerminateSubscriber(with: subscriberID, and: continuation)
-                }
-            }
-        }
-        
-        public func updatePeripherals(_ peripherals: [CBPeripheral]) {
-            discoveredPeripherals = peripherals
-            notifySubscribers()
-        }
-        
-        // MARK: - Private methods
-        
-        private func initializeSubscriber(with id: UUID, and continuation: PeripheralsContinuation) {
-            subscribers[id] = continuation
-            continuation.yield(discoveredPeripherals)
-            subscriberCountSubject.send(subscribers.count)
-        }
-        
-        private func onTerminateSubscriber(with id: UUID, and continuation: PeripheralsContinuation) {
-            continuation.onTermination = { [weak self] _ in
-                guard let self = self else { return }
-                self.queue.async(flags: .barrier) {
-                    self.subscribers.removeValue(forKey: id)
-                    self.subscriberCountSubject.send(self.subscribers.count)
-                }
-            }
-        }
-        
-        private func notifySubscribers() {
-            let currentPeripherals = discoveredPeripherals
-            for continuation in subscribers.values {
-                continuation.yield(currentPeripherals)
-            }
-        }
-    }
-    
-    private class State {
-
-        static var isBluetoothAuthorized: Bool {
-            return CBCentralManager.authorization == .allowedAlways
-        }
-        
-        static func isBluetoothPoweredOn(for manager: CBCentralManager) -> Bool {
-            return manager.state == .poweredOn
-        }
-    }
-    
-    class BluetoothDelegateHandler: NSObject, CBCentralManagerDelegate {
-        
-        private let stateSubject = PassthroughSubject<CBManagerState, Never>()
-        
-        private let peripheralSubject = CurrentValueSubject<[CBPeripheral], Never>([])
-       
-        public var statePublisher : StatePublisher{
-            stateSubject
-                .dropFirstIfPoweredOff()
-                .receiveOnMainAndEraseToAnyPublisher()
-        }
-        
-        public var peripheralPublisher : PeripheralPublisher{
-            peripheralSubject
-                .receiveOnMainAndEraseToAnyPublisher()
-        }
-        
-       public func centralManagerDidUpdateState(_ central: CBCentralManager) {
-           stateSubject.send(central.state) // Send state updates through the subject
-       }
-       
-       public func centralManager(_ central: CBCentralManager, didDiscover peripheral: CBPeripheral, advertisementData: [String : Any], rssi RSSI: NSNumber) {
-           var peripherals = peripheralSubject.value
-           if !peripherals.contains(where: { $0.identifier == peripheral.identifier }) {
-               peripherals.append(peripheral)
-               peripheralSubject.send(peripherals)
-           }
-       }
-   }
 }
