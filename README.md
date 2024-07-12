@@ -16,6 +16,20 @@ For a complete example of using `BluetoothLEManager` in a SwiftUI application, p
 |:-------:|:-------:|
 | ![iOS 13](https://github.com/The-Igor/bluetooth-law-energy-swift/blob/main/img/ble_manager.jpeg) | ![macOS 11](https://github.com/The-Igor/bluetooth-law-energy-swift/blob/main/img/bluetoth_le.gif) |
 
+### Main Features
+
+1. **Bluetooth Authorization Management**
+2. **Bluetooth Power Management**
+3. **Bluetooth Scanning**
+4. **State Publishing**
+5. **User Interface Integration**
+6. **Alert Management**
+
+### Additional Features
+7. **Peripheral Management**
+8. **Background Task Handling**
+
+
 ## Bluetooth LE Manager Implementation Specifics
 
 `BluetoothLEManager` serves as a wrapper around `CBCentralManager`, providing a streamlined interface for managing Bluetooth Low Energy (BLE) operations. This package integrates the authorization and power state monitoring specific to Apple's implementation for BLE devices, which simplifies handling these aspects within your application.
