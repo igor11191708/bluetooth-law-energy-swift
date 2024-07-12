@@ -12,7 +12,7 @@ For a complete example of using `BluetoothLEManager` in a SwiftUI application, p
 
 ## Supported Platforms
 
-| iOS 13 | macOS 11 |
+| iOS 14 | macOS 11 |
 |:-------:|:-------:|
 | ![iOS 13](https://github.com/The-Igor/bluetooth-law-energy-swift/blob/main/img/ble_manager.jpeg) | ![macOS 11](https://github.com/The-Igor/bluetooth-law-energy-swift/blob/main/img/bluetoth_le.gif) |
 

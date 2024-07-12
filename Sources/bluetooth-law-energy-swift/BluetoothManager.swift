@@ -10,7 +10,7 @@ import CoreBluetooth
 
 /// A manager class for handling Bluetooth Low Energy (BLE) operations, implementing ObservableObject.
 @MainActor
-@available(macOS 11, iOS 13, *)
+@available(macOS 11, iOS 14, *)
 public class BluetoothLEManager: NSObject, ObservableObject {
     
     /// A typealias for the state publisher.
