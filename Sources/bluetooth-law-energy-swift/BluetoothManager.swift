@@ -39,16 +39,13 @@ public class BluetoothManager: NSObject, ObservableObject {
     private func setupSubscriptions() {
         let statePublisher = delegateHandler.stateSubject
             .dropFirstIfPoweredOff()
-            .receive(on: DispatchQueue.main)
-            .eraseToAnyPublisher()
+            .receiveOnMainAndEraseToAnyPublisher()
         
         let peripheralPublisher = delegateHandler.peripheralSubject
-            .receive(on: DispatchQueue.main)
-            .eraseToAnyPublisher()
+            .receiveOnMainAndEraseToAnyPublisher()
         
         let subscriberCountPublisher = stream.subscriberCountSubject
-            .receive(on: DispatchQueue.main)
-            .eraseToAnyPublisher()
+            .receiveOnMainAndEraseToAnyPublisher()
         
         peripheralPublisher
             .sink { [weak self] peripherals in
@@ -111,15 +108,16 @@ public class BluetoothManager: NSObject, ObservableObject {
         
         private var subscribers: [UUID: PeripheralsContinuation] = [:]
         
-        private let queue = DispatchQueue(label: "BluetoothManagerQueue", attributes: .concurrent)
+        private let queue = DispatchQueue(label: "BluetoothManagerStreamQueue", attributes: .concurrent)
         
         private var getID : UUID { .init() }
         
         // MARK: - API
         
         public func peripheralsStream() -> AsyncStream<[CBPeripheral]> {
-            return AsyncStream { continuation in
-                queue.async(flags: .barrier) {
+            return AsyncStream { [weak self] continuation in
+                self?.queue.async(flags: .barrier) {
+                    guard let self = self else { return }
                     let subscriberID = self.getID
                     self.initializeSubscriber(with: subscriberID, and: continuation)
                     self.onTerminateSubscriber(with: subscriberID, and: continuation)
@@ -142,9 +140,10 @@ public class BluetoothManager: NSObject, ObservableObject {
         
         private func onTerminateSubscriber(with id: UUID, and continuation: PeripheralsContinuation) {
             continuation.onTermination = { [weak self] _ in
-                self?.queue.async(flags: .barrier) {
-                    self?.subscribers.removeValue(forKey: id)
-                    self?.subscriberCountSubject.send(self?.subscribers.count ?? 0)
+                guard let self = self else { return }
+                self.queue.async(flags: .barrier) {
+                    self.subscribers.removeValue(forKey: id)
+                    self.subscriberCountSubject.send(self.subscribers.count)
                 }
             }
         }
@@ -167,36 +166,5 @@ public class BluetoothManager: NSObject, ObservableObject {
             return manager.state == .poweredOn
         }
 
-    }
-}
-
-public class BluetoothDelegateHandler: NSObject, CBCentralManagerDelegate {
-    let stateSubject = PassthroughSubject<CBManagerState, Never>()
-    let peripheralSubject = CurrentValueSubject<[CBPeripheral], Never>([])
-    
-    public func centralManagerDidUpdateState(_ central: CBCentralManager) {
-        stateSubject.send(central.state) // Send state updates through the subject
-    }
-    
-    public func centralManager(_ central: CBCentralManager, didDiscover peripheral: CBPeripheral, advertisementData: [String : Any], rssi RSSI: NSNumber) {
-        var peripherals = peripheralSubject.value
-        if !peripherals.contains(where: { $0.identifier == peripheral.identifier }) {
-            peripherals.append(peripheral)
-            peripheralSubject.send(peripherals)
-        }
-    }
-}
-
-extension Publisher where Output == CBManagerState, Failure == Never {
-    func dropFirstIfPoweredOff() -> AnyPublisher<CBManagerState, Never> {
-        self.scan((0, CBManagerState.unknown)) { acc, newState in
-            let (count, _) = acc
-            return (count + 1, newState)
-        }
-        .drop { (count, state) in
-            return count == 1 && state == .poweredOff
-        }
-        .map { $0.1 } // Extract the actual CBManagerState value from the tuple
-        .eraseToAnyPublisher()
     }
 }
