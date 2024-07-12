@@ -26,6 +26,7 @@ For a complete example of using `BluetoothLEManager` in a SwiftUI application, p
 5. **User Interface Integration**
 6. **Peripheral Management**
 7. **Background Task Handling**
+8. **Multi platform**
 
 ## Bluetooth LE Manager Implementation Specifics
 
