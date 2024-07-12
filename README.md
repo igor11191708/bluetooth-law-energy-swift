@@ -10,6 +10,11 @@ This manager class is `ObservableObject`, which makes it easy to integrate with 
 
 For a complete example of using `BluetoothLEManager` in a SwiftUI application, please follow the [Example Project](https://example.com/repo).
 
+## Supported Platforms
+
+- macOS 11
+- iOS 13
+
 ## Bluetooth LE Manager Implementation Specifics
 
 `BluetoothLEManager` serves as a wrapper around `CBCentralManager`, providing a streamlined interface for managing Bluetooth Low Energy (BLE) operations. This package integrates the authorization and power state monitoring specific to Apple's implementation for BLE devices, which simplifies handling these aspects within your application.
