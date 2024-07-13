@@ -13,8 +13,6 @@ This manager class is `ObservableObject`, which makes it easy to integrate with 
 
 For a complete example of using `BluetoothLEManager` in a SwiftUI application, please follow the link [swiftui example](https://github.com/The-Igor/bluetooth-law-energy_example).
 
-## Supported Platforms
-
 | iOS 14 | macOS 11 |
 |:-------:|:-------:|
 | ![iOS 13](https://github.com/The-Igor/bluetooth-law-energy-swift/blob/main/img/ble_manager.jpeg) | ![macOS 11](https://github.com/The-Igor/bluetooth-law-energy-swift/blob/main/img/bluetoth_le.gif) |
@@ -26,9 +24,8 @@ For a complete example of using `BluetoothLEManager` in a SwiftUI application, p
 4. **State Publishing**
 5. **User Interface Integration**
 6. **Peripheral Management**
-7. **Background Task Handling**
-8. **Multi platform**
-9. **Utilizing modern concurrency in Swift with Async stream**
+7. **Multi platform**
+8. **Utilizing modern concurrency in Swift with Async stream**
 
 ## Bluetooth LE Manager Implementation Specifics
 
