@@ -24,7 +24,7 @@ extension BluetoothLEManager{
         /// - Parameter manager: The `CBCentralManager` instance to check the state of.
         /// - Returns: A Boolean value indicating whether Bluetooth is powered on.
         static func isBluetoothPoweredOn(for manager: CBCentralManager) -> Bool {
-            return manager.state == .poweredOn
+           return manager.state == .poweredOn
         }
     }
 

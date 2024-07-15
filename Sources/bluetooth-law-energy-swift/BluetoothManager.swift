@@ -36,8 +36,11 @@ public class BluetoothLEManager: NSObject, ObservableObject {
     
     // MARK: - Private properties
     
+    /// Limit time for discovering services
+    private var timeout : UInt64 = 10
+    
     /// A typealias for the delegate handler.
-    private typealias Delegate = BluetoothDelegateHandler
+    private typealias Delegate = BluetoothDelegate
     
     /// An instance of the State struct for Bluetooth state checks.
     private let state = BluetoothLEManager.State()
@@ -54,6 +57,9 @@ public class BluetoothLEManager: NSObject, ObservableObject {
     /// A set of AnyCancellable to hold Combine subscriptions.
     private var cancellables: Set<AnyCancellable> = []
     
+    /// Semaphore to control access to the discoverServices method
+    private let discoverServicesSemaphore = DispatchSemaphore(value: 1)
+    
     // MARK: - Life cycle
     
     /// Initializes a new instance of the BluetoothLEManager.
@@ -65,7 +71,7 @@ public class BluetoothLEManager: NSObject, ObservableObject {
         print("BluetoothManager initialized on \(Date())")
     }
     
-    /// Deinitializes the BluetoothLEManager.
+    /// Deinit the BluetoothLEManager.
     deinit {
         print("BluetoothManager deinitialized")
     }
@@ -79,6 +85,36 @@ public class BluetoothLEManager: NSObject, ObservableObject {
         return stream.peripheralsStream()
     }
     
+    /// Discovers services for a given peripheral.
+    ///
+    /// - Parameter peripheral: The `CBPeripheral` instance for which to discover services.
+    /// - Returns: An array of `CBService` representing the services supported by the peripheral.
+    /// - Throws: A `BluetoothLEManager.Errors` error if service discovery fails or the peripheral is already connected.
+    nonisolated public func discoverServices(for peripheral: CBPeripheral) async throws -> [CBService] {
+        // Wait for the semaphore to ensure only one discovery process runs at a time
+        discoverServicesSemaphore.wait()
+        defer {
+            // Signal the semaphore to allow the next method execution
+            discoverServicesSemaphore.signal()
+        }
+
+        // Check if the peripheral already has services or is connected
+        try PeripheralDelegate.checkPeripheralServices(for: peripheral)
+
+        // Step 1: Connect to the peripheral
+        try await delegateHandler.connect(to: peripheral, with: centralManager)
+        
+        // Step 2: Discover services on the peripheral
+        let delegate = PeripheralDelegate()
+        peripheral.delegate = delegate
+        let services = try await delegate.discoverServices(on: peripheral)
+
+        // Step 3: Disconnect from the peripheral
+        try await delegateHandler.disconnect(from: peripheral, with: centralManager)
+
+        return services
+    }
+
     // MARK: - Private Methods
     
     /// Sets up Combine subscriptions for state and peripheral updates.

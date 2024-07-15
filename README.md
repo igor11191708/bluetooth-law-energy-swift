@@ -12,14 +12,15 @@ For a complete example of using `BluetoothLEManager` in a SwiftUI application, p
 | ![iOS 13](https://github.com/The-Igor/bluetooth-law-energy-swift/blob/main/img/ble_manager.jpeg) | ![macOS 11](https://github.com/The-Igor/bluetooth-law-energy-swift/blob/main/img/bluetoth_le.gif) |
 
 ### Main Features
-1. **Bluetooth Authorization Management**
-2. **Bluetooth Power Management**
-3. **Bluetooth Scanning**
-4. **State Publishing**
-5. **User Interface Integration**
-6. **Peripheral Management**
-7. **Multi platform**
-8. **Utilizing modern concurrency in Swift with Async stream**
+- **Bluetooth Authorization Management**
+- **Bluetooth Power Management**
+- **State Publishing**
+- **User Interface Integration**
+- **Peripheral Management**
+- **Multi-platform**
+- **Utilizing modern concurrency in Swift with Async stream**
+- **Scanning of available devices**
+- **Fetching services for discovered devices**
 
 ## Bluetooth LE Manager Implementation Specifics
 
@@ -42,7 +43,9 @@ For a complete example of using `BluetoothLEManager` in a SwiftUI application, p
    - `BluetoothLEManager` manages the scanning process based on the number of active subscribers waiting the peripheral list.
    - Scanning for peripherals starts only when at least one subscriber is connected through the `peripheralsStream` method to get the list of peripherals. This ensures that scanning is active when there is a need for peripheral data.
    - When the number of subscribers drops to zero, the manager stops scanning to conserve resources and battery life. This allows efficient use of the device's Bluetooth capabilities.
-
+5. **Specifics of Authorizing Access to Bluetooth and Checking Availability for macOS**:
+   - Detailed guidance on these aspects can be found [here](https://github.com/The-Igor/bluetooth-law-energy_example).
+   
 ## Public API
 
 ### Properties
@@ -57,9 +60,10 @@ For a complete example of using `BluetoothLEManager` in a SwiftUI application, p
 
 ### Methods
 
-| Method                        | Description                                                      |
-|-------------------------------|------------------------------------------------------------------|
-| `peripheralsStream`           | Provides an asynchronous stream of discovered Bluetooth peripherals. |
+| Method                             | Description                                                                         |
+|------------------------------------|-------------------------------------------------------------------------------------|
+| `peripheralsStream`                | Provides an asynchronous stream of discovered Bluetooth peripherals.                |
+| `discoverServices(for:)`           | Asynchronously discovers services for a given peripheral.                           |
 
 ## Example Usage
 
