@@ -20,7 +20,7 @@ For a complete example of using `BluetoothLEManager` in a SwiftUI application, p
 - **Multi-platform**
 - **Utilizing modern concurrency in Swift with Async stream**
 - **Scanning of available devices asynchronously**
-- **Fetching services for discovered devices asynchronously** (the example is comming)
+- **Fetching services for discovered devices asynchronously** (the example is coming)
 
 ## Bluetooth LE Manager Implementation Specifics
 
