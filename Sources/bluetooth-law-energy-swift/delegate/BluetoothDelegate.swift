@@ -39,6 +39,8 @@ extension BluetoothLEManager {
             return try await withCheckedThrowingContinuation { continuation in
                 var cancellable: AnyCancellable? = nil
                 
+                // TODO: add timeout
+                
                 // Subscribe to the connectSubject to handle connection results
                 cancellable = connectSubject
                     .eraseToAnyPublisher()

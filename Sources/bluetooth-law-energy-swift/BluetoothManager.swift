@@ -98,6 +98,8 @@ public class BluetoothLEManager: NSObject, ObservableObject {
             discoverServicesSemaphore.signal()
         }
 
+        // TODO: add timeout for the whole discovering interval
+        
         // Check if the peripheral already has services or is connected
         try PeripheralDelegate.checkPeripheralServices(for: peripheral)
 
