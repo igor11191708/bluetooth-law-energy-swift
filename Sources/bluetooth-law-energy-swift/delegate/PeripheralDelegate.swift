@@ -20,7 +20,7 @@ extension BluetoothLEManager {
         /// - Parameters:
         ///   - peripheral: The `CBPeripheral` instance that discovered services
         ///   - error: An optional error if the discovery failed
-        func peripheral(_ peripheral: CBPeripheral, didDiscoverServices error: Error?) {
+        public func peripheral(_ peripheral: CBPeripheral, didDiscoverServices error: Error?) {
             
             // Remove the delegate to prevent further callbacks
             peripheral.delegate = nil
@@ -40,7 +40,7 @@ extension BluetoothLEManager {
         /// - Parameter peripheral: The `CBPeripheral` instance on which to discover services
         /// - Returns: An array of `CBService` representing the services supported by the peripheral
         /// - Throws: An error if service discovery fails
-        func discoverServices(on peripheral: CBPeripheral) async throws -> [CBService] {
+        public func discoverServices(on peripheral: CBPeripheral) async throws -> [CBService] {
             return try await withCheckedThrowingContinuation { cont in
                 continuation = cont
                 peripheral.discoverServices(nil)
