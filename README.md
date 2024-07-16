@@ -9,7 +9,7 @@ For a complete example of using `BluetoothLEManager` in a SwiftUI application, p
 
 | iOS 14 |
 |:-------:|
-| ![macOS 11](https://github.com/The-Igor/bluetooth-law-energy-swift/blob/main/img/ble_manager.jpeg) |
+| <img src="https://github.com/The-Igor/bluetooth-law-energy-swift/blob/main/img/ble_manager.jpeg" alt="macOS 11" style="height: 200px;"> |
 
 | macOS 11 |
 |:-------:|
