@@ -7,9 +7,13 @@
 
 For a complete example of using `BluetoothLEManager` in a SwiftUI application, please follow the link [swiftui example](https://github.com/The-Igor/bluetooth-law-energy_example).
 
-| iOS 14 | macOS 11 |
-|:-------:|:-------:|
-| ![iOS 13](https://github.com/The-Igor/bluetooth-law-energy-swift/blob/main/img/ble_manager.jpeg) | ![macOS 11](https://github.com/The-Igor/bluetooth-law-energy-swift/blob/main/img/bluetoth_le.gif) |
+| iOS 14 |
+|:-------:|
+| ![macOS 11](https://github.com/The-Igor/bluetooth-law-energy-swift/blob/main/img/bluetoth_le.gif) |
+
+| macOS 11 |
+|:-------:|
+| ![macOS 11](https://github.com/The-Igor/bluetooth-law-energy-swift/blob/main/img/bluetoth_le.gif) |
 
 ### Main Features
 - **Bluetooth Authorization Management**
