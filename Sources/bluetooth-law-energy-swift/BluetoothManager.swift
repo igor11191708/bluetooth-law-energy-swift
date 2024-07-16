@@ -101,9 +101,7 @@ public class BluetoothLEManager: NSObject, ObservableObject, IBluetoothLEManager
     /// - Returns: An array of `CBService` representing the services supported by the peripheral.
     /// - Throws: A `BluetoothLEManager.Errors` error if service discovery fails or the peripheral is already connected.
     nonisolated public func discoverServices(for peripheral: CBPeripheral) async throws -> [CBService] {
-
-        // TODO: add timeout for the whole discovering interval
-        
+       
         try PeripheralDelegate.checks(for: peripheral)
 
         // Step 1: Connect to the peripheral
