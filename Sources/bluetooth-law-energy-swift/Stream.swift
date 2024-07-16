@@ -16,7 +16,7 @@ extension BluetoothLEManager{
         /// A publisher that emits the current number of subscribers.
         public var subscriberCountPublisher: AnyPublisher<Int, Never> {
             subscriberCountSubject
-                .receiveOnMainAndEraseToAnyPublisher()
+                .eraseToAnyPublisher()
         }
         
         /// A subject to publish the current number of subscribers.

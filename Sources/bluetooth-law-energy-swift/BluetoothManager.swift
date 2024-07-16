@@ -99,6 +99,9 @@ public class BluetoothLEManager: NSObject, ObservableObject, IBluetoothLEManager
         return stream.peripheralsStream()
     }
     
+    // Create a semaphore with an initial count of 1
+    private let discoverSemaphore = DispatchSemaphore(value: 1)
+    
     /// Discovers services for a given peripheral.
     ///
     /// - Parameter peripheral: The `CBPeripheral` instance for which to discover services.
@@ -106,18 +109,26 @@ public class BluetoothLEManager: NSObject, ObservableObject, IBluetoothLEManager
     /// - Throws: A `BluetoothLEManager.Errors` error if service discovery fails or the peripheral is already connected.
     nonisolated public func discoverServices(for peripheral: CBPeripheral) async throws -> [CBService] {
 
-            try PeripheralDelegate.checks(for: peripheral)
-            
-            // Step 1: Connect to the peripheral
-            try await connect(to: peripheral)
-            
-            // Step 2: Discover services on the peripheral
-            let services = try await PeripheralDelegate.discoverServices(for: peripheral)
-            
-            // Step 3: Disconnect from the peripheral
-            try await disconnect(from: peripheral)
-            
-            return services
+        // TODO: get rid of semaphore
+        // Wait for the semaphore
+        discoverSemaphore.wait()
+        defer {
+            // Signal the semaphore to release it when the function exits
+            discoverSemaphore.signal()
+        }
+        
+        try PeripheralDelegate.checks(for: peripheral)
+        
+        // Step 1: Connect to the peripheral
+        try await connect(to: peripheral)
+        
+        // Step 2: Discover services on the peripheral
+        let services = try await PeripheralDelegate.discoverServices(for: peripheral)
+        
+        // Step 3: Disconnect from the peripheral
+        try await disconnect(from: peripheral)
+        
+        return services
     }
 
     // MARK: - Private Methods

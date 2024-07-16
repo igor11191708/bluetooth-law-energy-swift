@@ -86,13 +86,12 @@ extension BluetoothLEManager {
         public var statePublisher: AnyPublisher<CBManagerState, Never> {
             stateSubject
                 .dropFirstIfPoweredOff()
-                .receiveOnMainAndEraseToAnyPublisher()
         }
         
         /// A publisher for discovered Bluetooth peripherals, ensuring updates are received on the main thread.
         public var peripheralPublisher: AnyPublisher<[CBPeripheral], Never> {
             peripheralSubject
-                .receiveOnMainAndEraseToAnyPublisher()
+                .eraseToAnyPublisher()
         }
         
         // MARK: - Delegate API methods
