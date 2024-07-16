@@ -48,22 +48,23 @@ For a complete example of using `BluetoothLEManager` in a SwiftUI application, p
    
 ## Public API
 
-### Properties
+| Name                    | Type       | Description                                                                                          | Type/Return Type                                  |
+|-------------------------|------------|------------------------------------------------------------------------------------------------------|--------------------------------------------------|
+| `StatePublisher`        | Typealias  | A typealias for the state publisher.                                                                 | `AnyPublisher<CBManagerState, Never>`            |
+| `PeripheralPublisher`   | Typealias  | A typealias for the peripheral publisher.                                                            | `AnyPublisher<[CBPeripheral], Never>`            |
+| `isAuthorized`          | Property   | Indicates if Bluetooth is authorized.                                                                | `Bool`                                           |
+| `isPowered`             | Property   | Indicates if Bluetooth is powered on.                                                                | `Bool`                                           |
+| `isScanning`            | Property   | Indicates if scanning for peripherals is ongoing.                                                    | `Bool`                                           |
+| `getStatePublisher`     | Property   | Gets the state publisher from the delegate handler.                                                  | `StatePublisher`                                 |
+| `getPeripheralPublisher`| Property   | Gets the peripheral publisher from the delegate handler.                                             | `PeripheralPublisher`                            |
+| `peripheralsStream`     | Property   | Provides an asynchronous stream of discovered Bluetooth peripherals.                                  | `AsyncStream<[CBPeripheral]>`                    |
+| `discoverServices`      | Method     | Discovers services for a given peripheral. Throws an error if service discovery fails or the peripheral is already connected. | `async throws -> [CBService]` |
 
-| Type      | Name                   | Description                                          |
-|-----------|------------------------|------------------------------------------------------|
-| `Bool`    | `isAuthorized`         | Indicates if Bluetooth is authorized.                |
-| `Bool`    | `isPowered`            | Indicates if Bluetooth is powered on.                |
-| `Bool`    | `isScanning`           | Indicates if scanning for peripherals is ongoing.    |
-| `StatePublisher` | `getStatePublisher`    | A publisher that emits the state of the Bluetooth manager. |
-| `PeripheralPublisher` | `getPeripheralPublisher` | A publisher that emits an array of discovered peripherals. |
+### Description of `IBluetoothLEManager` Protocol
 
-### Methods
+The `IBluetoothLEManager` protocol encapsulates the essential functionalities required for managing BLE operations. It includes properties for Bluetooth state, scanning status, and publishers for state and peripherals. The protocol also provides a method for discovering services on a given peripheral.
 
-| Method                             | Description                                                                         |
-|------------------------------------|-------------------------------------------------------------------------------------|
-| `peripheralsStream`                | Provides an asynchronous stream of discovered Bluetooth peripherals.                |
-| `discoverServices(for:)`           | Asynchronously discovers services for a given peripheral.                           |
+
 
 ## Example Usage
 
