@@ -11,7 +11,7 @@ For a complete example of using `BluetoothLEManager` in a SwiftUI application, p
 |:-------:|
 | <img src="https://github.com/The-Igor/bluetooth-law-energy-swift/blob/main/img/ble_manager.jpeg" alt="macOS 11" style="height: 450px;"> |
 
-| macOS 11 |
+| macOS |
 |:-------:|
 | ![macOS 11](https://github.com/The-Igor/bluetooth-law-energy-swift/blob/main/img/bluetoth_le.gif) |
 
