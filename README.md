@@ -21,7 +21,7 @@ For a complete example of using `BluetoothLEManager` in a SwiftUI application, p
 - **Scanning of available devices**
 - **Fetching services for discovered devices asynchronously** (the example is coming)
 
- <img src="https://github.com/The-Igor/bluetooth-law-energy-swift/blob/main/img/ble_manager.jpeg" alt="macOS 11" style="height: 450px;"> 
+ <img src="https://github.com/The-Igor/bluetooth-law-energy-swift/blob/main/img/ble_manager.jpeg" alt="macOS 11" style="height: 780px;"> 
  
 ## Bluetooth LE Manager Implementation Specifics
 
