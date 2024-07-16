@@ -27,7 +27,7 @@ public class BluetoothLEManager: NSObject, ObservableObject, IBluetoothLEManager
 
     /// A published property to indicate if scanning for peripherals is ongoing.
     @Published public var isScanning = false
-    
+   
     /// A computed property to get the state publisher from the delegate handler.
     public var getStatePublisher: StatePublisher { delegateHandler.statePublisher }
     
@@ -35,9 +35,6 @@ public class BluetoothLEManager: NSObject, ObservableObject, IBluetoothLEManager
     public var getPeripheralPublisher: PeripheralPublisher { delegateHandler.peripheralPublisher }
     
     // MARK: - Private properties
-    
-    /// Limit time for discovering services
-    private var timeout : UInt64 = 10
     
     /// A typealias for the delegate handler.
     private typealias Delegate = BluetoothDelegate
@@ -78,13 +75,29 @@ public class BluetoothLEManager: NSObject, ObservableObject, IBluetoothLEManager
     
     // MARK: - Public API
     
+    /// Connects to a specified peripheral.
+    /// - Parameter peripheral: The peripheral to connect to.
+    /// - Returns: The connected peripheral.
+    /// - Throws: An error if the connection fails.
+    public func connect(to peripheral: CBPeripheral) async throws -> CBPeripheral {
+        try PeripheralDelegate.checks(for: peripheral)
+        return try await delegateHandler.connect(to: peripheral, with: centralManager)
+    }
+    
+    /// Disconnects from a specified peripheral.
+    /// - Parameter peripheral: The peripheral to disconnect from.
+    /// - Returns: The disconnected peripheral.
+    /// - Throws: An error if the disconnection fails.
+    public func disconnect(from peripheral: CBPeripheral) async throws -> CBPeripheral {
+        try await delegateHandler.disconnect(from: peripheral, with: centralManager)
+    }
+    
     /// Provides an asynchronous stream of discovered Bluetooth peripherals.
     ///
     /// - Returns: An `AsyncStream` of an array of `CBPeripheral` objects.
     public var peripheralsStream: AsyncStream<[CBPeripheral]> {
         return stream.peripheralsStream()
     }
-    
     /// Discovers services for a given peripheral.
     ///
     /// - Parameter peripheral: The `CBPeripheral` instance for which to discover services.
@@ -115,7 +128,6 @@ public class BluetoothLEManager: NSObject, ObservableObject, IBluetoothLEManager
     }
 
     // MARK: - Private Methods
-
     
     /// Sets up Combine subscriptions for state and peripheral updates.
     private func setupSubscriptions() {

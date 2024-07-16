@@ -8,10 +8,8 @@
 import Combine
 import CoreBluetooth
 
-// Extension of BluetoothLEManager to handle Bluetooth operations through a delegate.
 extension BluetoothLEManager {
 
-    /// A class that handles Bluetooth central manager delegate methods and publishes Bluetooth state and discovered peripherals.
     class BluetoothDelegate: NSObject, CBCentralManagerDelegate {
         
         /// A subject to publish Bluetooth state updates.
@@ -26,26 +24,24 @@ extension BluetoothLEManager {
         /// A subject to publish disconnection results.
         private var disconnectSubject = PassthroughSubject<Result<CBPeripheral, BluetoothLEManager.Errors>, Never>()
         
+        // MARK: - API
+        
         /// Connects to a given peripheral.
-        ///
-        /// This asynchronous method attempts to connect to the peripheral using the provided CBCentralManager.
         ///
         /// - Parameters:
         ///   - peripheral: The `CBPeripheral` instance to connect to.
         ///   - manager: The `CBCentralManager` used to manage the connection.
+        ///   - timeout: The time interval to wait before timing out the connection attempt.
         /// - Returns: The connected `CBPeripheral`.
         /// - Throws: A `BluetoothLEManager.Errors` error if the connection fails.
         public func connect(to peripheral: CBPeripheral, with manager: CBCentralManager) async throws -> CBPeripheral {
+            let publisher = connectSubject.eraseToAnyPublisher()
+            var cancellable: AnyCancellable? = nil
+            defer { cancellable?.cancel() }
+
             return try await withCheckedThrowingContinuation { continuation in
-                var cancellable: AnyCancellable? = nil
-                
-                // TODO: add timeout
-                
-                // Subscribe to the connectSubject to handle connection results
-                cancellable = connectSubject
-                    .eraseToAnyPublisher()
+                cancellable = publisher
                     .sink { result in
-                        cancellable?.cancel()  // Cancel the subscription right after resuming
                         switch result {
                         case .success(let connectedPeripheral):
                             continuation.resume(returning: connectedPeripheral)
@@ -53,14 +49,12 @@ extension BluetoothLEManager {
                             continuation.resume(throwing: error)
                         }
                     }
-                
+
                 manager.connect(peripheral)  // Initiate connection to the peripheral
             }
         }
-         
+        
         /// Disconnects from a given peripheral.
-        ///
-        /// This asynchronous method attempts to disconnect from the peripheral using the provided CBCentralManager.
         ///
         /// - Parameters:
         ///   - peripheral: The `CBPeripheral` instance to disconnect from.
@@ -99,7 +93,7 @@ extension BluetoothLEManager {
                 .receiveOnMainAndEraseToAnyPublisher()
         }
         
-        // MARK: - Delegate methods
+        // MARK: - Delegate API methods
         
         /// Called when the central manager's state is updated.
         ///
@@ -131,6 +125,9 @@ extension BluetoothLEManager {
         ///   - central: The central manager managing the connection.
         ///   - peripheral: The peripheral that has successfully connected.
         public func centralManager(_ central: CBCentralManager, didConnect peripheral: CBPeripheral) {
+            #if DEBUG
+            print("didConnect")
+            #endif
             connectSubject.send(.success(peripheral))
         }
         
@@ -152,6 +149,9 @@ extension BluetoothLEManager {
         ///   - peripheral: The peripheral that has disconnected.
         ///   - error: The error that occurred during the disconnection, if any.
         public func centralManager(_ central: CBCentralManager, didDisconnectPeripheral peripheral: CBPeripheral, error: Error?) {
+            #if DEBUG
+            print("didDisconnectPeripheral")
+            #endif
             if let error = error {
                 disconnectSubject.send(.failure(.connection(peripheral, error)))
             } else {
