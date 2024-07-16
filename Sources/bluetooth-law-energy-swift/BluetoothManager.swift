@@ -9,16 +9,11 @@ import Combine
 import CoreBluetooth
 
 /// A manager class for handling Bluetooth Low Energy (BLE) operations, implementing ObservableObject.
+
 @MainActor
 @available(macOS 11, iOS 14, tvOS 15.0, watchOS 8.0, *)
 public class BluetoothLEManager: NSObject, ObservableObject, IBluetoothLEManager {
-    
-    /// A typealias for the state publisher.
-    public typealias StatePublisher = AnyPublisher<CBManagerState, Never>
-    
-    /// A typealias for the peripheral publisher.
-    public typealias PeripheralPublisher = AnyPublisher<[CBPeripheral], Never>
-    
+       
     /// A published property to indicate if Bluetooth is authorized.
     @Published public var isAuthorized = false
     
@@ -26,15 +21,21 @@ public class BluetoothLEManager: NSObject, ObservableObject, IBluetoothLEManager
     @Published public var isPowered = false
 
     /// A published property to indicate if scanning for peripherals is ongoing.
-    @Published public var isScanning = false
-   
-    /// A computed property to get the state publisher from the delegate handler.
-    public var getStatePublisher: StatePublisher { delegateHandler.statePublisher }
-    
-    /// A computed property to get the peripheral publisher from the delegate handler.
-    public var getPeripheralPublisher: PeripheralPublisher { delegateHandler.peripheralPublisher }
+     @Published public var isScanning = false
     
     // MARK: - Private properties
+    
+    /// A typealias for the state publisher.
+    private typealias StatePublisher = AnyPublisher<CBManagerState, Never>
+    
+    /// A typealias for the peripheral publisher.
+    private typealias PeripheralPublisher = AnyPublisher<[CBPeripheral], Never>
+    
+    /// A computed property to get the state publisher from the delegate handler.
+    private var getStatePublisher: StatePublisher { delegateHandler.statePublisher }
+    
+    /// A computed property to get the peripheral publisher from the delegate handler.
+    private var getPeripheralPublisher: PeripheralPublisher { delegateHandler.peripheralPublisher }
     
     /// A typealias for the delegate handler.
     private typealias Delegate = BluetoothDelegate
@@ -54,12 +55,14 @@ public class BluetoothLEManager: NSObject, ObservableObject, IBluetoothLEManager
     /// A set of AnyCancellable to hold Combine subscriptions.
     private var cancellables: Set<AnyCancellable> = []
     
+    private let centralManagerQueue = DispatchQueue(label: "BluetoothLEManager-CBCentralManager-Queue")
+    
     // MARK: - Life cycle
     
     /// Initializes a new instance of the BluetoothLEManager.
     public override init() {
         delegateHandler = Delegate()
-        centralManager = CBCentralManager(delegate: delegateHandler, queue: nil)
+        centralManager = CBCentralManager(delegate: delegateHandler, queue: centralManagerQueue)
         super.init()
         setupSubscriptions()
         print("BluetoothManager initialized on \(Date())")
@@ -95,25 +98,26 @@ public class BluetoothLEManager: NSObject, ObservableObject, IBluetoothLEManager
     public var peripheralsStream: AsyncStream<[CBPeripheral]> {
         return stream.peripheralsStream()
     }
+    
     /// Discovers services for a given peripheral.
     ///
     /// - Parameter peripheral: The `CBPeripheral` instance for which to discover services.
     /// - Returns: An array of `CBService` representing the services supported by the peripheral.
     /// - Throws: A `BluetoothLEManager.Errors` error if service discovery fails or the peripheral is already connected.
     nonisolated public func discoverServices(for peripheral: CBPeripheral) async throws -> [CBService] {
-       
-        try PeripheralDelegate.checks(for: peripheral)
 
-        // Step 1: Connect to the peripheral
-        try await delegateHandler.connect(to: peripheral, with: centralManager)
-        
-        // Step 2: Discover services on the peripheral
-        let services = try await PeripheralDelegate.discoverServices(for: peripheral)
-
-        // Step 3: Disconnect from the peripheral
-        try await delegateHandler.disconnect(from: peripheral, with: centralManager)
-
-        return services
+            try PeripheralDelegate.checks(for: peripheral)
+            
+            // Step 1: Connect to the peripheral
+            try await connect(to: peripheral)
+            
+            // Step 2: Discover services on the peripheral
+            let services = try await PeripheralDelegate.discoverServices(for: peripheral)
+            
+            // Step 3: Disconnect from the peripheral
+            try await disconnect(from: peripheral)
+            
+            return services
     }
 
     // MARK: - Private Methods
@@ -128,6 +132,7 @@ public class BluetoothLEManager: NSObject, ObservableObject, IBluetoothLEManager
             .store(in: &cancellables)
         
         Publishers.CombineLatest(getStatePublisher, stream.subscriberCountPublisher)
+            .receiveOnMainAndEraseToAnyPublisher()
             .sink { [weak self] state, subscriberCount in
                 self?.checkForScan(state, subscriberCount)
             }

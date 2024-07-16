@@ -50,8 +50,6 @@ For a complete example of using `BluetoothLEManager` in a SwiftUI application, p
 
 | Name                     | Type       | Description                                                                                          | Type/Return Type                                  |
 |--------------------------|------------|------------------------------------------------------------------------------------------------------|--------------------------------------------------|
-| `StatePublisher`         | Typealias  | A typealias for the state publisher.                                                                 | `AnyPublisher<CBManagerState, Never>`            |
-| `PeripheralPublisher`    | Typealias  | A typealias for the peripheral publisher.                                                            | `AnyPublisher<[CBPeripheral], Never>`            |
 | `isAuthorized`           | Property   | Indicates if Bluetooth is authorized.                                                                | `Bool`                                           |
 | `isPowered`              | Property   | Indicates if Bluetooth is powered on.                                                                | `Bool`                                           |
 | `isScanning`             | Property   | Indicates if scanning for peripherals is ongoing.                                                    | `Bool`                                           |

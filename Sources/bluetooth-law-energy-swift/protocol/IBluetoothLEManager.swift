@@ -9,7 +9,6 @@ import Foundation
 import Combine
 import CoreBluetooth
 
-@MainActor
 @available(macOS 11, iOS 14, tvOS 15.0, watchOS 8.0, *)
 public protocol IBluetoothLEManager {
     
@@ -27,12 +26,6 @@ public protocol IBluetoothLEManager {
     
     /// A property to indicate if scanning for peripherals is ongoing.
     var isScanning: Bool { get set }
-    
-    /// A computed property to get the state publisher.
-    var getStatePublisher: StatePublisher { get }
-    
-    /// A computed property to get the peripheral publisher.
-    var getPeripheralPublisher: PeripheralPublisher { get }
     
     /// Provides an asynchronous stream of discovered Bluetooth peripherals.
     var peripheralsStream: AsyncStream<[CBPeripheral]> { get }

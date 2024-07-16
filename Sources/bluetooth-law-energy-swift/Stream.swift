@@ -32,7 +32,7 @@ extension BluetoothLEManager{
         private var subscribers: [UUID: PeripheralsContinuation] = [:]
         
         /// A concurrent dispatch queue for managing subscriber access.
-        private let queue = DispatchQueue(label: "BluetoothManagerStreamQueue", attributes: .concurrent)
+        private let queue = DispatchQueue(label: "BluetoothManager-Stream-Queue")
         
         /// Generates a new UUID.
         private var getID: UUID { .init() }
