@@ -34,6 +34,7 @@ extension BluetoothLEManager {
         ///   - timeout: The time interval to wait before timing out the connection attempt.
         /// - Returns: The connected `CBPeripheral`.
         /// - Throws: A `BluetoothLEManager.Errors` error if the connection fails.
+        @discardableResult
         public func connect(to peripheral: CBPeripheral, with manager: CBCentralManager) async throws -> CBPeripheral {
             let publisher = connectSubject.eraseToAnyPublisher()
             var cancellable: AnyCancellable? = nil
@@ -61,6 +62,7 @@ extension BluetoothLEManager {
         ///   - manager: The `CBCentralManager` used to manage the disconnection.
         /// - Returns: The disconnected `CBPeripheral`.
         /// - Throws: A `BluetoothLEManager.Errors` error if the disconnection fails.
+        @discardableResult
         public func disconnect(from peripheral: CBPeripheral, with manager: CBCentralManager) async throws -> CBPeripheral {
             return try await withCheckedThrowingContinuation { continuation in
                 var cancellable: AnyCancellable? = nil

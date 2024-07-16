@@ -54,9 +54,6 @@ public class BluetoothLEManager: NSObject, ObservableObject, IBluetoothLEManager
     /// A set of AnyCancellable to hold Combine subscriptions.
     private var cancellables: Set<AnyCancellable> = []
     
-    /// Semaphore to control access to the discoverServices method
-    private let discoverServicesSemaphore = DispatchSemaphore(value: 1)
-    
     // MARK: - Life cycle
     
     /// Initializes a new instance of the BluetoothLEManager.
@@ -104,16 +101,10 @@ public class BluetoothLEManager: NSObject, ObservableObject, IBluetoothLEManager
     /// - Returns: An array of `CBService` representing the services supported by the peripheral.
     /// - Throws: A `BluetoothLEManager.Errors` error if service discovery fails or the peripheral is already connected.
     nonisolated public func discoverServices(for peripheral: CBPeripheral) async throws -> [CBService] {
-        // Wait for the semaphore to ensure only one discovery process runs at a time
-        discoverServicesSemaphore.wait()
-        defer {
-            // Signal the semaphore to allow the next method execution
-            discoverServicesSemaphore.signal()
-        }
 
         // TODO: add timeout for the whole discovering interval
         
-        try PeripheralDelegate.checkIfConnected(for: peripheral)
+        try PeripheralDelegate.checks(for: peripheral)
 
         // Step 1: Connect to the peripheral
         try await delegateHandler.connect(to: peripheral, with: centralManager)
