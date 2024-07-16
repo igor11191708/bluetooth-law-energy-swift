@@ -18,7 +18,7 @@ For a complete example of using `BluetoothLEManager` in a SwiftUI application, p
 - **Peripheral Management**
 - **Multi-platform**
 - **Utilizing modern concurrency in Swift with Async stream**
-- **Scanning of available devices asynchronously**
+- **Scanning of available devices**
 - **Fetching services for discovered devices asynchronously** (the example is coming)
 
  <img src="https://github.com/The-Igor/bluetooth-law-energy-swift/blob/main/img/ble_manager.jpeg" alt="macOS 11" style="height: 450px;"> 
