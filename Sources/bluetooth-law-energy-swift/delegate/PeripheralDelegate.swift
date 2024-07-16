@@ -21,16 +21,13 @@ extension BluetoothLEManager {
         ///   - peripheral: The `CBPeripheral` instance that discovered services
         ///   - error: An optional error if the discovery failed
         public func peripheral(_ peripheral: CBPeripheral, didDiscoverServices error: Error?) {
-            
-            // Remove the delegate to prevent further callbacks
-            peripheral.delegate = nil
-            
-            // Resume the continuation with either the discovered services or an error
+
             if let error = error {
                 continuation?.resume(throwing: error)
             } else if let services = peripheral.services {
                 continuation?.resume(returning: services)
             }
+            
             // Clear the continuation to avoid retaining it
             continuation = nil
         }
@@ -40,26 +37,39 @@ extension BluetoothLEManager {
         /// - Parameter peripheral: The `CBPeripheral` instance on which to discover services
         /// - Returns: An array of `CBService` representing the services supported by the peripheral
         /// - Throws: An error if service discovery fails
-        public func discoverServices(on peripheral: CBPeripheral) async throws -> [CBService] {
+        public func fetchServices(for peripheral: CBPeripheral) async throws -> [CBService] {
             return try await withCheckedThrowingContinuation { cont in
                 continuation = cont
                 peripheral.discoverServices(nil)
             }
         }
         
-        /// Checks if the peripheral already has services or is connected
+        /// Checks if the given peripheral is connected.
         ///
-        /// - Parameter peripheral: The `CBPeripheral` instance to check
-        /// - Returns: An array of `CBService` representing the services supported by the peripheral if already discovered
-        /// - Throws: An error if the peripheral is already connected
-        static func checkPeripheralServices(for peripheral: CBPeripheral) throws -> [CBService] {
-            if let services = peripheral.services {
-                return services
-            } else if peripheral.state == .connected {
+        /// - Parameter peripheral: The `CBPeripheral` instance to check the connection status of.
+        ///
+        /// - Throws: `BluetoothLEManager.Errors.alreadyConnected` if the peripheral is connected.
+        ///
+        /// - Note: This function does not perform any actions if the peripheral is not connected.
+        public static func checkIfConnected(for peripheral: CBPeripheral) throws {
+            if peripheral.state == .connected {
                 throw BluetoothLEManager.Errors.alreadyConnected(peripheral)
-            } else {
-                return []
             }
+        }
+        
+        /// Discovers services for the specified peripheral.
+        ///
+        /// - Parameter peripheral: The `CBPeripheral` instance for which to discover services.
+        ///
+        /// - Returns: An array of `CBService` objects representing the services discovered on the peripheral.
+        ///
+        /// - Throws: An error if the service discovery process fails.
+        public static func discoverServices(for peripheral: CBPeripheral) async throws -> [CBService] {
+            let delegate = PeripheralDelegate()
+            peripheral.delegate = delegate
+            let services = try await delegate.fetchServices(for: peripheral)
+            peripheral.delegate = nil // Remove the delegate to prevent further callbacks
+            return services
         }
     }
 }

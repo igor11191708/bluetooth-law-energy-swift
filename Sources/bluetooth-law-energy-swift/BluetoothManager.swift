@@ -100,16 +100,13 @@ public class BluetoothLEManager: NSObject, ObservableObject {
 
         // TODO: add timeout for the whole discovering interval
         
-        // Check if the peripheral already has services or is connected
-        try PeripheralDelegate.checkPeripheralServices(for: peripheral)
+        try PeripheralDelegate.checkIfConnected(for: peripheral)
 
         // Step 1: Connect to the peripheral
         try await delegateHandler.connect(to: peripheral, with: centralManager)
         
         // Step 2: Discover services on the peripheral
-        let delegate = PeripheralDelegate()
-        peripheral.delegate = delegate
-        let services = try await delegate.discoverServices(on: peripheral)
+        let services = try await PeripheralDelegate.discoverServices(for: peripheral)
 
         // Step 3: Disconnect from the peripheral
         try await delegateHandler.disconnect(from: peripheral, with: centralManager)
@@ -118,6 +115,7 @@ public class BluetoothLEManager: NSObject, ObservableObject {
     }
 
     // MARK: - Private Methods
+
     
     /// Sets up Combine subscriptions for state and peripheral updates.
     private func setupSubscriptions() {
