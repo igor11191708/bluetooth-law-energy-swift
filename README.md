@@ -7,15 +7,14 @@
 
 For a complete example of using `BluetoothLEManager` in a SwiftUI application, please follow the link [swiftui example](https://github.com/The-Igor/bluetooth-law-energy_example).
 
-| iOS 14 |
-|:-------:|
+![macOS 11](https://github.com/The-Igor/bluetooth-law-energy-swift/blob/main/img/bluetoth_le.gif) 
+
+
+| iOS | ### Main Features |
+|:-------:| :-------:|
 | <img src="https://github.com/The-Igor/bluetooth-law-energy-swift/blob/main/img/ble_manager.jpeg" alt="macOS 11" style="height: 450px;"> |
 
-| macOS |
-|:-------:|
-| ![macOS 11](https://github.com/The-Igor/bluetooth-law-energy-swift/blob/main/img/bluetoth_le.gif) |
 
-### Main Features
 - **Bluetooth Authorization Management**
 - **Bluetooth Power Management**
 - **State Publishing**
@@ -25,6 +24,7 @@ For a complete example of using `BluetoothLEManager` in a SwiftUI application, p
 - **Utilizing modern concurrency in Swift with Async stream**
 - **Scanning of available devices asynchronously**
 - **Fetching services for discovered devices asynchronously** (the example is coming)
+|
 
 ## Bluetooth LE Manager Implementation Specifics
 
