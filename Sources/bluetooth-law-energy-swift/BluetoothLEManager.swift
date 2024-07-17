@@ -92,13 +92,11 @@ public class BluetoothLEManager: NSObject, ObservableObject, IBluetoothLEManager
     /// - Throws: A `BluetoothLEManager.Errors` error if service discovery fails or the peripheral is already connected.
     nonisolated public func discoverServices(for peripheral: CBPeripheral) async throws -> [CBService] {
 
-        // TODO: Instance method 'wait' is unavailable from asynchronous contexts; Await a Task handle instead; this is an error in Swift 6
-
         discoverSemaphore.wait()
         defer {
             discoverSemaphore.signal()
         }
-        
+
         // Step 1: Connect to the peripheral
         try await connect(to: peripheral)
         
@@ -184,7 +182,6 @@ public class BluetoothLEManager: NSObject, ObservableObject, IBluetoothLEManager
     /// - Throws: An error if the connection fails.
     @discardableResult
     private func connect(to peripheral: CBPeripheral) async throws -> CBPeripheral {
-        try PeripheralDelegate.checks(for: peripheral)
         return try await delegateHandler.connect(to: peripheral, with: centralManager)
     }
     
@@ -194,10 +191,6 @@ public class BluetoothLEManager: NSObject, ObservableObject, IBluetoothLEManager
     /// - Throws: An error if the disconnection fails.
     @discardableResult
     private func disconnect(from peripheral: CBPeripheral) async throws -> CBPeripheral {
-        guard PeripheralDelegate.checkIfConnected(for: peripheral) else{
-            return peripheral
-        }
-        
         return try await delegateHandler.disconnect(from: peripheral, with: centralManager)
     }
 }

@@ -13,9 +13,9 @@ public extension BluetoothLEManager {
         
         case discoveringServicesError(String)  // Error encountered while discovering services
       
-        case connection(CBPeripheral, Error)  // Error encountered while connecting
+        case connection(CBPeripheral, Error?)  // Error encountered while connecting
        
-        case disconnection(CBPeripheral, Error) // Error encountered while disconnecting
+        case disconnection(CBPeripheral, Error?) // Error encountered while disconnecting
        
         case alreadyConnected(CBPeripheral) // Error when peripheral is already connected
        
@@ -26,9 +26,9 @@ public extension BluetoothLEManager {
             case .discoveringServicesError(let message):
                 return NSLocalizedString("Error discovering services: \(message)", comment: "Discovering Services Error")
             case .connection(let peripheral, let error):
-                return NSLocalizedString("Error connecting to \(peripheral.name ?? "unknown peripheral"): \(error.localizedDescription)", comment: "Connection Error")
+                return NSLocalizedString("Error connecting to \(peripheral.name ?? "unknown peripheral"): \(error?.localizedDescription)", comment: "Connection Error")
             case .disconnection(let peripheral, let error):
-                return NSLocalizedString("Error disconnecting from \(peripheral.name ?? "unknown peripheral"): \(error.localizedDescription)", comment: "Disconnection Error")
+                return NSLocalizedString("Error disconnecting from \(peripheral.name ?? "unknown peripheral"): \(error?.localizedDescription)", comment: "Disconnection Error")
             case .alreadyConnected(let peripheral):
                 return NSLocalizedString("The peripheral \(peripheral.name ?? "unknown peripheral") is already connected. Please disconnect and try again.", comment: "Already Connected Error")
             case .timeout(let peripheral):

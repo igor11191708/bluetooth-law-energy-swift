@@ -43,24 +43,6 @@ extension BluetoothLEManager {
             }
         }
         
-        /// Checks if the given peripheral is already connected.
-        ///
-        /// - Parameter peripheral: The `CBPeripheral` instance to check
-        /// - Throws: An error if the peripheral is already connected
-        public static func checks(for peripheral: CBPeripheral) throws {
-            if checkIfConnected(for: peripheral) {
-                throw BluetoothLEManager.Errors.alreadyConnected(peripheral)
-            }
-        }
-        
-        /// Checks if the given peripheral is connected.
-        ///
-        /// - Parameter peripheral: The `CBPeripheral` instance to check
-        /// - Returns: `true` if the peripheral is connected, otherwise `false`
-        public static func checkIfConnected(for peripheral: CBPeripheral) -> Bool {
-            return peripheral.state == .connected
-        }
-        
         /// Discovers services on the specified peripheral.
         ///
         /// - Parameter peripheral: The `CBPeripheral` instance on which to discover services

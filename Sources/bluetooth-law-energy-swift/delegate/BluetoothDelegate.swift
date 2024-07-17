@@ -17,12 +17,11 @@ extension BluetoothLEManager {
         
         /// A subject to publish discovered Bluetooth peripherals.
         private let peripheralSubject = CurrentValueSubject<[CBPeripheral], Never>([])
-        
-        /// A subject to publish connection results.
-        private var connectSubject = PassthroughSubject<Result<CBPeripheral, BluetoothLEManager.Errors>, Never>()
-        
-        /// A subject to publish disconnection results.
-        private var disconnectSubject = PassthroughSubject<Result<CBPeripheral, BluetoothLEManager.Errors>, Never>()
+                
+        /// The `ConnectionManager` instance, initialized lazily.
+        private lazy var connectionManager: ConnectionService = {
+            return ConnectionService()
+        }()
         
         // MARK: - API
         
@@ -36,23 +35,7 @@ extension BluetoothLEManager {
         /// - Throws: A `BluetoothLEManager.Errors` error if the connection fails.
         @discardableResult
         public func connect(to peripheral: CBPeripheral, with manager: CBCentralManager) async throws -> CBPeripheral {
-            let publisher = connectSubject.eraseToAnyPublisher()
-            var cancellable: AnyCancellable? = nil
-            defer { cancellable?.cancel() }
-
-            return try await withCheckedThrowingContinuation { continuation in
-                cancellable = publisher
-                    .sink { result in
-                        switch result {
-                        case .success(let connectedPeripheral):
-                            continuation.resume(returning: connectedPeripheral)
-                        case .failure(let error):
-                            continuation.resume(throwing: error)
-                        }
-                    }
-
-                manager.connect(peripheral)  // Initiate connection to the peripheral
-            }
+               try await connectionManager.connect(to: peripheral, using: manager)
         }
         
         /// Disconnects from a given peripheral.
@@ -64,22 +47,8 @@ extension BluetoothLEManager {
         /// - Throws: A `BluetoothLEManager.Errors` error if the disconnection fails.
         @discardableResult
         public func disconnect(from peripheral: CBPeripheral, with manager: CBCentralManager) async throws -> CBPeripheral {
-            return try await withCheckedThrowingContinuation { continuation in
-                var cancellable: AnyCancellable? = nil
-                
-                // Subscribe to the disconnectSubject to handle disconnection results
-                cancellable = disconnectSubject.eraseToAnyPublisher().sink { result in
-                    cancellable?.cancel()  // Cancel the subscription right after resuming
-                    switch result {
-                    case .success(let disconnectedPeripheral):
-                        continuation.resume(returning: disconnectedPeripheral)
-                    case .failure(let error):
-                        continuation.resume(throwing: error)
-                    }
-                }
-                
                 manager.cancelPeripheralConnection(peripheral)  // Initiate disconnection from the peripheral
-            }
+                return peripheral
         }
         
         /// A publisher for Bluetooth state updates, applying custom operators to handle initial powered-off state and receive on the main thread.
@@ -129,7 +98,9 @@ extension BluetoothLEManager {
             #if DEBUG
             print("didConnect")
             #endif
-            connectSubject.send(.success(peripheral))
+            Task{
+                await connectionManager.handleDidConnect(peripheral)
+            }
         }
         
         /// Called when a connection attempt to a peripheral fails.
@@ -140,7 +111,9 @@ extension BluetoothLEManager {
         ///   - error: The error that occurred during the connection attempt.
         public func centralManager(_ central: CBCentralManager, didFailToConnect peripheral: CBPeripheral, error: Error?) {
             let e = error ?? NSError(domain: "BluetoothLEManager", code: CBError.unknown.rawValue, userInfo: [NSLocalizedDescriptionKey: "Failed to connect to the peripheral."])
-            connectSubject.send(.failure(.connection(peripheral, e)))
+            Task{
+                await connectionManager.handleDidFailToConnect(peripheral , with: error)
+            }
         }
         
         /// Called when a peripheral disconnects.
@@ -153,10 +126,8 @@ extension BluetoothLEManager {
             #if DEBUG
             print("didDisconnectPeripheral")
             #endif
-            if let error = error {
-                disconnectSubject.send(.failure(.connection(peripheral, error)))
-            } else {
-                disconnectSubject.send(.success(peripheral))
+            Task{
+                await connectionManager.handleDidDisconnect(peripheral, with:error)
             }
         }
     }
