@@ -37,16 +37,4 @@ public protocol IBluetoothLEManager {
     /// - Returns: An array of `CBService` representing the services supported by the peripheral.
     /// - Throws: A `BluetoothLEManager.Errors` error if service discovery fails or the peripheral is already connected.
     func discoverServices(for peripheral: CBPeripheral) async throws -> [CBService]
-    
-    /// Connects to a specified peripheral.
-    /// - Parameter peripheral: The peripheral to connect to.
-    /// - Returns: The connected peripheral.
-    /// - Throws: An error if the connection fails.
-    func connect(to peripheral: CBPeripheral) async throws -> CBPeripheral
-
-    /// Disconnects from a specified peripheral.
-    /// - Parameter peripheral: The peripheral to disconnect from.
-    /// - Returns: The disconnected peripheral.
-    /// - Throws: An error if the disconnection fails.
-    func disconnect(from peripheral: CBPeripheral) async throws -> CBPeripheral
 }

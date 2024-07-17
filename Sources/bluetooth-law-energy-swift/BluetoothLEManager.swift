@@ -57,6 +57,9 @@ public class BluetoothLEManager: NSObject, ObservableObject, IBluetoothLEManager
     
     private let centralManagerQueue = DispatchQueue(label: "BluetoothLEManager-CBCentralManager-Queue")
     
+    /// Create a semaphore with an initial count of 1
+    private let discoverSemaphore = DispatchSemaphore(value: 1)
+    
     // MARK: - Life cycle
     
     /// Initializes a new instance of the BluetoothLEManager.
@@ -74,39 +77,13 @@ public class BluetoothLEManager: NSObject, ObservableObject, IBluetoothLEManager
     }
     
     // MARK: - Public API
-    
-    /// Connects to a specified peripheral.
-    /// - Parameter peripheral: The peripheral to connect to.
-    /// - Returns: The connected peripheral.
-    /// - Throws: An error if the connection fails.
-    @discardableResult
-    public func connect(to peripheral: CBPeripheral) async throws -> CBPeripheral {
-        try PeripheralDelegate.checks(for: peripheral)
-        return try await delegateHandler.connect(to: peripheral, with: centralManager)
-    }
-    
-    /// Disconnects from a specified peripheral.
-    /// - Parameter peripheral: The peripheral to disconnect from.
-    /// - Returns: The disconnected peripheral.
-    /// - Throws: An error if the disconnection fails.
-    @discardableResult
-    public func disconnect(from peripheral: CBPeripheral) async throws -> CBPeripheral {
-        guard PeripheralDelegate.checkIfConnected(for: peripheral) else{
-            return peripheral
-        }
-        
-        return try await delegateHandler.disconnect(from: peripheral, with: centralManager)
-    }
-    
+       
     /// Provides an asynchronous stream of discovered Bluetooth peripherals.
     ///
     /// - Returns: An `AsyncStream` of an array of `CBPeripheral` objects.
     public var peripheralsStream: AsyncStream<[CBPeripheral]> {
         return stream.peripheralsStream()
     }
-    
-    // Create a semaphore with an initial count of 1
-    private let discoverSemaphore = DispatchSemaphore(value: 1)
     
     /// Discovers services for a given peripheral.
     ///
@@ -117,14 +94,10 @@ public class BluetoothLEManager: NSObject, ObservableObject, IBluetoothLEManager
 
         // TODO: Instance method 'wait' is unavailable from asynchronous contexts; Await a Task handle instead; this is an error in Swift 6
 
-        // Wait for the semaphore
         discoverSemaphore.wait()
         defer {
-            // Signal the semaphore to release it when the function exits
             discoverSemaphore.signal()
         }
-        
-        try PeripheralDelegate.checks(for: peripheral)
         
         // Step 1: Connect to the peripheral
         try await connect(to: peripheral)
@@ -203,5 +176,28 @@ public class BluetoothLEManager: NSObject, ObservableObject, IBluetoothLEManager
     private func stopScanning() {
         isScanning = false
         centralManager.stopScan()
+    }
+    
+    /// Connects to a specified peripheral.
+    /// - Parameter peripheral: The peripheral to connect to.
+    /// - Returns: The connected peripheral.
+    /// - Throws: An error if the connection fails.
+    @discardableResult
+    private func connect(to peripheral: CBPeripheral) async throws -> CBPeripheral {
+        try PeripheralDelegate.checks(for: peripheral)
+        return try await delegateHandler.connect(to: peripheral, with: centralManager)
+    }
+    
+    /// Disconnects from a specified peripheral.
+    /// - Parameter peripheral: The peripheral to disconnect from.
+    /// - Returns: The disconnected peripheral.
+    /// - Throws: An error if the disconnection fails.
+    @discardableResult
+    private func disconnect(from peripheral: CBPeripheral) async throws -> CBPeripheral {
+        guard PeripheralDelegate.checkIfConnected(for: peripheral) else{
+            return peripheral
+        }
+        
+        return try await delegateHandler.disconnect(from: peripheral, with: centralManager)
     }
 }
