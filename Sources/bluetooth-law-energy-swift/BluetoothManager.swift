@@ -91,7 +91,11 @@ public class BluetoothLEManager: NSObject, ObservableObject, IBluetoothLEManager
     /// - Throws: An error if the disconnection fails.
     @discardableResult
     public func disconnect(from peripheral: CBPeripheral) async throws -> CBPeripheral {
-        try await delegateHandler.disconnect(from: peripheral, with: centralManager)
+        guard PeripheralDelegate.checkIfConnected(for: peripheral) else{
+            return peripheral
+        }
+        
+        return try await delegateHandler.disconnect(from: peripheral, with: centralManager)
     }
     
     /// Provides an asynchronous stream of discovered Bluetooth peripherals.
