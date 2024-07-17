@@ -110,7 +110,6 @@ extension BluetoothLEManager {
         ///   - peripheral: The peripheral that failed to connect.
         ///   - error: The error that occurred during the connection attempt.
         public func centralManager(_ central: CBCentralManager, didFailToConnect peripheral: CBPeripheral, error: Error?) {
-            let e = error ?? NSError(domain: "BluetoothLEManager", code: CBError.unknown.rawValue, userInfo: [NSLocalizedDescriptionKey: "Failed to connect to the peripheral."])
             Task{
                 await connectionManager.handleDidFailToConnect(peripheral , with: error)
             }
