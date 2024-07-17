@@ -55,7 +55,7 @@ public class BluetoothLEManager: NSObject, ObservableObject, IBluetoothLEManager
     /// A set of AnyCancellable to hold Combine subscriptions.
     private var cancellables: Set<AnyCancellable> = []
     
-    private let centralManagerQueue = DispatchQueue(label: "BluetoothLEManager-CBCentralManager-Queue")
+    private let centralManagerQueue = DispatchQueue(label: "BluetoothLEManager-CBCentralManager-Queue", attributes: .concurrent)
     
     /// Create a semaphore with an initial count of 1
     private let discoverSemaphore = DispatchSemaphore(value: 1)
@@ -91,13 +91,6 @@ public class BluetoothLEManager: NSObject, ObservableObject, IBluetoothLEManager
     /// - Returns: An array of `CBService` representing the services supported by the peripheral.
     /// - Throws: A `BluetoothLEManager.Errors` error if service discovery fails or the peripheral is already connected.
     nonisolated public func discoverServices(for peripheral: CBPeripheral) async throws -> [CBService] {
-
-        // TODO: Instance method 'wait' is unavailable from asynchronous contexts; Await a Task handle instead; this is an error in Swift 6
-        
-        discoverSemaphore.wait()
-        defer {
-            discoverSemaphore.signal()
-        }
 
         // Step 1: Connect to the peripheral
         try await connect(to: peripheral)
