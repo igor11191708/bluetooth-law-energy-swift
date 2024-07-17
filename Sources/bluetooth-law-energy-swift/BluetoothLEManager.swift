@@ -55,10 +55,7 @@ public class BluetoothLEManager: NSObject, ObservableObject, IBluetoothLEManager
     /// A set of AnyCancellable to hold Combine subscriptions.
     private var cancellables: Set<AnyCancellable> = []
     
-    private let centralManagerQueue = DispatchQueue(label: "BluetoothLEManager-CBCentralManager-Queue", attributes: .concurrent)
-    
-    /// Create a semaphore with an initial count of 1
-    private let discoverSemaphore = DispatchSemaphore(value: 1)
+    private let centralManagerQueue = DispatchQueue(label: "BluetoothLEManager-CBCentralManager-Queue")
     
     // MARK: - Life cycle
     

@@ -96,6 +96,10 @@ extension BluetoothLEManager {
             }
             
             continuation.resume(returning: peripheral)
+            
+            #if DEBUG
+            print("didDisconnectPeripheral \(peripheral.name ?? "")")
+            #endif
         }
     }
 }

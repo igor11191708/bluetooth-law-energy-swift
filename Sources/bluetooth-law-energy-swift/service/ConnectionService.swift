@@ -90,10 +90,16 @@ extension BluetoothLEManager {
         ///
         /// - Parameter peripheral: The `CBPeripheral` instance that was connected.
         public func handleDidConnect(_ peripheral: CBPeripheral) {
-            if let continuation = register[peripheral.identifier] {
+            guard let continuation = register[peripheral.identifier] else {
+                return
+            }
                 removeConnecting(for: peripheral)
                 continuation.resume(returning: peripheral)
-            }
+                
+                #if DEBUG
+                print("didConnect \(register.count) \(peripheral.name ?? "")")
+                #endif
+            
         }
         
         /// Handles a failed connection attempt to a peripheral.
@@ -102,10 +108,16 @@ extension BluetoothLEManager {
         ///   - peripheral: The `CBPeripheral` instance that failed to connect.
         ///   - error: The error that occurred during the connection attempt.
         public func handleDidFailToConnect(_ peripheral: CBPeripheral, with error: Error?) {
-            if let continuation = register[peripheral.identifier] {
+            guard let continuation = register[peripheral.identifier] else {
+                return
+            }
                 removeConnecting(for: peripheral)
                 continuation.resume(throwing: Errors.connection(peripheral, error))
-            }
+            
+            #if DEBUG
+            print("FailToConnect \(register.count) \(peripheral.name ?? "")")
+            #endif
+            
         }
     }
 }

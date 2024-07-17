@@ -99,9 +99,6 @@ extension BluetoothLEManager {
         ///   - central: The central manager managing the connection.
         ///   - peripheral: The peripheral that has successfully connected.
         public func centralManager(_ central: CBCentralManager, didConnect peripheral: CBPeripheral) {
-            #if DEBUG
-            print("didConnect")
-            #endif
             Task{
                 await connectionService.handleDidConnect(peripheral)
             }
@@ -126,9 +123,6 @@ extension BluetoothLEManager {
         ///   - peripheral: The peripheral that has disconnected.
         ///   - error: The error that occurred during the disconnection, if any.
         public func centralManager(_ central: CBCentralManager, didDisconnectPeripheral peripheral: CBPeripheral, error: Error?) {
-            #if DEBUG
-            print("didDisconnectPeripheral")
-            #endif
             Task{
                 await disconnectionService.handleDidDisconnect(peripheral, with:error)
             }
