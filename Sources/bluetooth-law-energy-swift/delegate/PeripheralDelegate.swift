@@ -16,16 +16,7 @@ extension BluetoothLEManager {
         /// Continuation to manage the async response for discovering services
         private var continuation: CheckedContinuation<[CBService], Error>?
        
-        private var expired = Atomic<Bool>(false)
-
-        func setExpired() {
-            expired.value = true
-        }
-
-        var isExpired: Bool {
-            return expired.value
-        }
-        
+       
         /// Called when the peripheral discovers services
         ///
         /// - Parameters:
@@ -42,13 +33,6 @@ extension BluetoothLEManager {
             
             continuation = nil
         }
-        
-        func runTimeout(for peripheral: CBPeripheral) async{
-            try? await Task.sleep(nanoseconds: 5 * 1_000_000_000)
-            setExpired()
-            continuation?.resume(throwing: Errors.timeoutServices(peripheral))
-            continuation = nil
-        }
 
         /// Initiates the discovery of services on the specified peripheral
         ///
@@ -59,10 +43,6 @@ extension BluetoothLEManager {
             return try await withCheckedThrowingContinuation { cont in
                 continuation = cont
                 peripheral.discoverServices(nil)
-                
-                Task{ [weak self] in
-                    await self?.runTimeout(for: peripheral)
-                }
             }
         }
         
@@ -82,28 +62,6 @@ extension BluetoothLEManager {
         
         public func peripheral(_ peripheral: CBPeripheral, didModifyServices invalidatedServices: [CBService]) {
 
-        }
-    }
-}
-
-fileprivate final class Atomic<Value> {
-    private var lock = os_unfair_lock()
-    private var _value: Value
-
-    public init(_ value: Value) {
-        self._value = value
-    }
-
-    public var value: Value {
-        get {
-            os_unfair_lock_lock(&lock)
-            defer { os_unfair_lock_unlock(&lock) }
-            return _value
-        }
-        set {
-            os_unfair_lock_lock(&lock)
-            _value = newValue
-            os_unfair_lock_unlock(&lock)
         }
     }
 }

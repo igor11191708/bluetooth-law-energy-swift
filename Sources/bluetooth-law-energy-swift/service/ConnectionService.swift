@@ -80,9 +80,9 @@ extension BluetoothLEManager {
         /// - Parameters:
         ///   - peripheral: The `CBPeripheral` instance to start the timeout for.
         ///   - timeout: The timeout duration in nanoseconds.
-        private func startTimeoutTask(for peripheral: CBPeripheral, timeout: UInt64) {
+        private func startTimeoutTask(for peripheral: CBPeripheral, timeout: Double) {
             Task {
-                try? await Task.sleep(nanoseconds: timeout * 1_000_000_000)
+                try? await Task.sleep(for: .seconds(timeout))
                 if register[peripheral.identifier] != nil {
                     handleResult(for: peripheral, result: .failure(Errors.timeout(peripheral)))
                 }
@@ -97,7 +97,7 @@ extension BluetoothLEManager {
         ///   - timeout: The timeout duration in nanoseconds.
         /// - Returns: The connected `CBPeripheral` instance.
         /// - Throws: A `BluetoothLEManager.Errors` error if the connection fails or times out.
-        public func connect(to peripheral: CBPeripheral, using centralManager: CBCentralManager, timeout: UInt64 = UInt64(11.0)) async throws -> CBPeripheral {
+        public func connect(to peripheral: CBPeripheral, using centralManager: CBCentralManager, timeout: Double = 5.0) async throws -> CBPeripheral {
             return try await withCheckedThrowingContinuation { continuation in
                 
                 guard isNotConnected(peripheral) else {
