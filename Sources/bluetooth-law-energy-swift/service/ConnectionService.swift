@@ -116,7 +116,7 @@ extension BluetoothLEManager {
                 
                 add(continuation, for: peripheral)
                 centralManager.connect(peripheral, options: nil)
-                startTimeoutTask(for: peripheral, timeout: timeout)
+               // startTimeoutTask(for: peripheral, timeout: timeout)
             }
         }
         

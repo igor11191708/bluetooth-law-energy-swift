@@ -115,13 +115,15 @@ public class BluetoothLEManager: NSObject, ObservableObject, IBluetoothLEManager
         }
         
         // Step 1: Connect to the peripheral
-         try await connect(to: peripheral)
+        try await connect(to: peripheral)
+        
+
         
         // Step 2: Discover services on the peripheral
         let services = try await PeripheralDelegate.discoverServices(for: peripheral)
         
-        // Step 3: Disconnect from the peripheral
-      //  try await disconnect(from: peripheral)
+            // Step 3: Disconnect from the peripheral
+        //try await disconnect(from: peripheral)
     
         return services
     }
