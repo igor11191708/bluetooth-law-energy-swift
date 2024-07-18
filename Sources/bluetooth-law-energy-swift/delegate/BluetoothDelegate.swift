@@ -19,14 +19,10 @@ extension BluetoothLEManager {
         private let peripheralSubject = CurrentValueSubject<[CBPeripheral], Never>([])
                 
         /// The `ConnectionService` instance, initialized lazily.
-        private lazy var connectionService: ConnectionService = {
-            return ConnectionService()
-        }()
+        private let connectionService: ConnectionService = .init()
         
         /// The `ConnectionService` instance, initialized lazily.
-        private lazy var disconnectionService: DisconnectionService = {
-            return DisconnectionService()
-        }()
+        private let disconnectionService: DisconnectionService = .init()
         
         // MARK: - API
         

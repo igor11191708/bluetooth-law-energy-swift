@@ -7,11 +7,12 @@
 
 import Combine
 import CoreBluetooth
+import retry_policy_service
 
 /// A manager class for handling Bluetooth Low Energy (BLE) operations, implementing ObservableObject.
 
 @MainActor
-@available(macOS 11, iOS 14, tvOS 15.0, watchOS 8.0, *)
+@available(macOS 12, iOS 15, tvOS 15.0, watchOS 8.0, *)
 public class BluetoothLEManager: NSObject, ObservableObject, IBluetoothLEManager {
        
     /// A published property to indicate if Bluetooth is authorized.
@@ -55,7 +56,7 @@ public class BluetoothLEManager: NSObject, ObservableObject, IBluetoothLEManager
     /// A set of AnyCancellable to hold Combine subscriptions.
     private var cancellables: Set<AnyCancellable> = []
     
-    private let centralManagerQueue = DispatchQueue(label: "BluetoothLEManager-CBCentralManager-Queue")
+    private let centralManagerQueue = DispatchQueue(label: "BluetoothLEManager-CBCentralManager-Queue", attributes: .concurrent)
     
     // MARK: - Life cycle
     
@@ -74,6 +75,24 @@ public class BluetoothLEManager: NSObject, ObservableObject, IBluetoothLEManager
     }
     
     // MARK: - Public API
+    
+    /// Connects to a specified peripheral.
+    /// - Parameter peripheral: The peripheral to connect to.
+    /// - Returns: The connected peripheral.
+    /// - Throws: An error if the connection fails.
+    @discardableResult
+    public func connect(to peripheral: CBPeripheral) async throws -> CBPeripheral {
+        return try await delegateHandler.connect(to: peripheral, with: centralManager)
+    }
+    
+    /// Disconnects from a specified peripheral.
+    /// - Parameter peripheral: The peripheral to disconnect from.
+    /// - Returns: The disconnected peripheral.
+    /// - Throws: An error if the disconnection fails.
+    @discardableResult
+    public func disconnect(from peripheral: CBPeripheral) async throws -> CBPeripheral {
+        return try await delegateHandler.disconnect(from: peripheral, with: centralManager)
+    }
        
     /// Provides an asynchronous stream of discovered Bluetooth peripherals.
     ///
@@ -89,15 +108,21 @@ public class BluetoothLEManager: NSObject, ObservableObject, IBluetoothLEManager
     /// - Throws: A `BluetoothLEManager.Errors` error if service discovery fails or the peripheral is already connected.
     nonisolated public func discoverServices(for peripheral: CBPeripheral) async throws -> [CBService] {
 
+        defer{
+            if peripheral.state == .connected{
+                centralManager.cancelPeripheralConnection(peripheral)
+            }
+        }
+        
         // Step 1: Connect to the peripheral
-        try await connect(to: peripheral)
+         try await connect(to: peripheral)
         
         // Step 2: Discover services on the peripheral
         let services = try await PeripheralDelegate.discoverServices(for: peripheral)
         
         // Step 3: Disconnect from the peripheral
-        try await disconnect(from: peripheral)
-        
+      //  try await disconnect(from: peripheral)
+    
         return services
     }
 
@@ -167,22 +192,5 @@ public class BluetoothLEManager: NSObject, ObservableObject, IBluetoothLEManager
         isScanning = false
         centralManager.stopScan()
     }
-    
-    /// Connects to a specified peripheral.
-    /// - Parameter peripheral: The peripheral to connect to.
-    /// - Returns: The connected peripheral.
-    /// - Throws: An error if the connection fails.
-    @discardableResult
-    private func connect(to peripheral: CBPeripheral) async throws -> CBPeripheral {
-        return try await delegateHandler.connect(to: peripheral, with: centralManager)
-    }
-    
-    /// Disconnects from a specified peripheral.
-    /// - Parameter peripheral: The peripheral to disconnect from.
-    /// - Returns: The disconnected peripheral.
-    /// - Throws: An error if the disconnection fails.
-    @discardableResult
-    private func disconnect(from peripheral: CBPeripheral) async throws -> CBPeripheral {
-        return try await delegateHandler.disconnect(from: peripheral, with: centralManager)
-    }
+
 }

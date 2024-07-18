@@ -40,14 +40,14 @@ extension BluetoothLEManager {
         /// - Parameters:
         ///   - continuation: The `Promise` continuation to add.
         ///   - peripheral: The `CBPeripheral` instance to associate with the continuation.
-        private func addDisconnecting(_ continuation: Promise, for peripheral: CBPeripheral) {
+        private func add(_ continuation: Promise, for peripheral: CBPeripheral) {
             register[peripheral.identifier] = continuation
         }
         
         /// Removes the disconnecting continuation for the peripheral.
         ///
         /// - Parameter peripheral: The `CBPeripheral` instance for which to remove the continuation.
-        private func removeDisconnecting(for peripheral: CBPeripheral) {
+        private func remove(for peripheral: CBPeripheral) {
             register.removeValue(forKey: peripheral.identifier)
         }
         
@@ -73,7 +73,7 @@ extension BluetoothLEManager {
                     return
                 }
                 
-                addDisconnecting(continuation, for: peripheral)
+                add(continuation, for: peripheral)
                 centralManager.cancelPeripheralConnection(peripheral)
             }
         }
@@ -88,7 +88,7 @@ extension BluetoothLEManager {
                 return
             }
             
-            removeDisconnecting(for: peripheral)
+            remove(for: peripheral)
             
             if let error = error {
                 continuation.resume(throwing: Errors.connection(peripheral, error))

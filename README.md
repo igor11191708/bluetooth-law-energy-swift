@@ -58,6 +58,8 @@ For an example of using `BluetoothLEManager` in a SwiftUI application, please fo
 | `getPeripheralPublisher` | Property   | Gets the peripheral publisher from the delegate handler.                                             | `PeripheralPublisher`                            |
 | `peripheralsStream`      | Property   | Provides an asynchronous stream of discovered Bluetooth peripherals.                                  | `AsyncStream<[CBPeripheral]>`                    |
 | `discoverServices`       | Method     | Discovers services for a given peripheral. Throws an error if service discovery fails or the peripheral is already connected. | `async throws -> [CBService]` |
+| `connect`                | Method     | Connects to a specified peripheral. Throws an error if the connection fails.                         | `async throws -> CBPeripheral`                   |
+| `disconnect`             | Method     | Disconnects from a specified peripheral. Throws an error if the disconnection fails.                 | `async throws -> CBPeripheral`                   |
 
 ### Description of `IBluetoothLEManager` Protocol
 

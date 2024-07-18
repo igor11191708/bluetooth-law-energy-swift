@@ -5,18 +5,25 @@ import PackageDescription
 
 let package = Package(
     name: "bluetooth-law-energy-swift",
-    platforms: [.macOS(.v11), .iOS(.v14), .watchOS(.v8), .tvOS(.v15)],
+    platforms: [.macOS(.v12), .iOS(.v15), .watchOS(.v8), .tvOS(.v15)],
     products: [
         // Products define the executables and libraries a package produces, making them visible to other packages.
         .library(
             name: "bluetooth-law-energy-swift",
             targets: ["bluetooth-law-energy-swift"]),
     ],
+    dependencies: [
+        // Dependencies declare other packages that this package depends on.
+        .package(url: "https://github.com/The-Igor/retry-policy-service.git", from: "1.0.0"),
+    ],
     targets: [
         // Targets are the basic building blocks of a package, defining a module or a test suite.
         // Targets can depend on other targets in this package and products from dependencies.
         .target(
-            name: "bluetooth-law-energy-swift"),
+            name: "bluetooth-law-energy-swift",
+            dependencies: [
+                .product(name: "retry-policy-service", package: "retry-policy-service"),
+            ]),
         .testTarget(
             name: "bluetooth-law-energy-swiftTests",
             dependencies: ["bluetooth-law-energy-swift"]),
