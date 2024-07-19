@@ -56,7 +56,7 @@ public class BluetoothLEManager: NSObject, ObservableObject, IBluetoothLEManager
     /// A set of AnyCancellable to hold Combine subscriptions.
     private var cancellables: Set<AnyCancellable> = []
     
-    private let centralManagerQueue = DispatchQueue(label: "BluetoothLEManager-CBCentralManager-Queue", attributes: .concurrent)
+    private let centralManagerQueue = DispatchQueue(label: "BluetoothLEManager-CBCentralManager-Queue")
     
     // MARK: - Life cycle
     
@@ -123,7 +123,7 @@ public class BluetoothLEManager: NSObject, ObservableObject, IBluetoothLEManager
         let services = try await PeripheralDelegate.discoverServices(for: peripheral)
         
             // Step 3: Disconnect from the peripheral
-        //try await disconnect(from: peripheral)
+        try await disconnect(from: peripheral)
     
         return services
     }

@@ -51,6 +51,10 @@ extension BluetoothLEManager {
             register.removeValue(forKey: peripheral.identifier)
         }
         
+        private func remove(for id: UUID) {
+            register.removeValue(forKey: id)
+        }
+        
         /// Handles the result of a connection attempt.
         ///
         /// - Parameters:
@@ -59,7 +63,6 @@ extension BluetoothLEManager {
         private func handleResult(for peripheral: CBPeripheral, result: Result<CBPeripheral, Error>) {
             let id = peripheral.identifier
             
-            // Ensure there's a registered continuation
             guard let continuation = register[id] else {
                 return
             }
@@ -68,10 +71,10 @@ extension BluetoothLEManager {
             
             // Resume the continuation based on the result
             switch result {
-            case .success(let peripheral):
-                continuation.resume(returning: peripheral)
-            case .failure(let error):
-                continuation.resume(throwing: error)
+                case .success(let peripheral):
+                    continuation.resume(returning: peripheral)
+                case .failure(let error):
+                    continuation.resume(throwing: error)
             }
         }
         
@@ -80,12 +83,18 @@ extension BluetoothLEManager {
         /// - Parameters:
         ///   - peripheral: The `CBPeripheral` instance to start the timeout for.
         ///   - timeout: The timeout duration in nanoseconds.
-        private func startTimeoutTask(for peripheral: CBPeripheral, timeout: Double) {
+        private func startTimeoutTask(for id: UUID, timeout: Double) {
             Task {
                 try? await Task.sleep(for: .seconds(timeout))
-                if register[peripheral.identifier] != nil {
-                    handleResult(for: peripheral, result: .failure(Errors.timeout(peripheral)))
+
+                guard let continuation = register[id] else {
+                    return
                 }
+                
+                remove(for: id)
+                
+                continuation.resume(throwing: Errors.timeout)
+                
             }
         }
         
@@ -116,7 +125,7 @@ extension BluetoothLEManager {
                 
                 add(continuation, for: peripheral)
                 centralManager.connect(peripheral, options: nil)
-               // startTimeoutTask(for: peripheral, timeout: timeout)
+                //startTimeoutTask(for: peripheral.identifier, timeout: timeout)
             }
         }
         

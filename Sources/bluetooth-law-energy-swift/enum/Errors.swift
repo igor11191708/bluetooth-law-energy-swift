@@ -27,10 +27,10 @@ public extension BluetoothLEManager {
         case connecting(CBPeripheral)
         
         /// Error when an operation times out.
-        case timeout(CBPeripheral)
+        case timeout
         
         /// Error when an operation times out.
-        case timeoutServices(CBPeripheral)
+        case timeoutServices
         
         public var errorDescription: String? {
             switch self {
@@ -44,10 +44,10 @@ public extension BluetoothLEManager {
                 return NSLocalizedString("The peripheral \(peripheral.name ?? "unknown peripheral") is already connected. Please disconnect and try again.", comment: "Already Connected Error")
             case .connecting(let peripheral):
                 return NSLocalizedString("The peripheral \(peripheral.name ?? "unknown peripheral") is currently connecting. Please wait until the connection is complete.", comment: "Connecting Error")
-            case .timeout(let peripheral):
-                return NSLocalizedString("Connecting operation timed out for peripheral \(peripheral.name ?? "unknown peripheral").", comment: "Timeout Error")
-            case .timeoutServices(let peripheral):
-                return NSLocalizedString("Discovering operation timed out for peripheral \(peripheral.name ?? "unknown peripheral").", comment: "Timeout Error")
+            case .timeout:
+                return NSLocalizedString("Connecting operation timed out for peripheral.", comment: "Timeout Error")
+            case .timeoutServices:
+                return NSLocalizedString("Discovering operation timed out for peripheral.", comment: "Timeout Error")
             }
         }
     }
