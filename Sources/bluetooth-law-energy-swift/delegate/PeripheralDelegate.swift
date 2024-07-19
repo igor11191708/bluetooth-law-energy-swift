@@ -13,9 +13,8 @@ extension BluetoothLEManager {
     // Class to handle CB Peripheral Delegate
     public class PeripheralDelegate: NSObject, CBPeripheralDelegate {
         
-        /// Continuation to manage the async response for discovering services
-        private var continuation: CheckedContinuation<[CBService], Error>?
        
+        private let service: RegistrationService<[CBService]> = .init(type: .discovering)
        
         /// Called when the peripheral discovers services
         ///
@@ -23,15 +22,16 @@ extension BluetoothLEManager {
         ///   - peripheral: The `CBPeripheral` instance that discovered services
         ///   - error: An optional error if the discovery failed
         public func peripheral(_ peripheral: CBPeripheral, didDiscoverServices error: Error?) {
-           // guard isExpired else{ return }
                     
             if let error = error {
-                continuation?.resume(throwing: error)
+                Task{
+                    await service.handleResult(for: peripheral, result: .failure(BluetoothLEManager.Errors.connection(peripheral, error)))
+                }
             } else if let services = peripheral.services {
-                continuation?.resume(returning: services)
+                Task{
+                    await service.handleResult(for: peripheral, result: .success(services))
+                }
             }
-            
-            continuation = nil
         }
 
         /// Initiates the discovery of services on the specified peripheral
@@ -39,25 +39,16 @@ extension BluetoothLEManager {
         /// - Parameter peripheral: The `CBPeripheral` instance on which to discover services
         /// - Returns: An array of `CBService` representing the services supported by the peripheral
         /// - Throws: An error if service discovery fails
+        @MainActor
         public func fetchServices(for peripheral: CBPeripheral) async throws -> [CBService] {
-            return try await withCheckedThrowingContinuation { cont in
-                continuation = cont
-                peripheral.discoverServices(nil)
+            return try await withCheckedThrowingContinuation { continuation in
+                Task{
+                    let id = peripheral.getId
+                    let name = peripheral.getName
+                    try await service.register(to: id, name: name, with: continuation)
+                    peripheral.discoverServices(nil)
+                }
             }
-        }
-        
-        /// Discovers services on the specified peripheral.
-        ///
-        /// - Parameter peripheral: The `CBPeripheral` instance on which to discover services
-        /// - Returns: An array of `CBService` representing the services supported by the peripheral
-        /// - Throws: An error if service discovery fails
-        public static func discoverServices(for peripheral: CBPeripheral) async throws -> [CBService] {
-       
-            let delegate = PeripheralDelegate()
-                peripheral.delegate = delegate
-            let services = try await delegate.fetchServices(for: peripheral)
-            peripheral.delegate = nil // Remove the delegate to prevent further callbacks
-            return services
         }
         
         public func peripheral(_ peripheral: CBPeripheral, didModifyServices invalidatedServices: [CBService]) {
