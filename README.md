@@ -3,7 +3,7 @@
 
 [![](https://img.shields.io/endpoint?url=https%3A%2F%2Fswiftpackageindex.com%2Fapi%2Fpackages%2FThe-Igor%2Fbluetooth-law-energy-swift%2Fbadge%3Ftype%3Dswift-versions)](https://swiftpackageindex.com/The-Igor/bluetooth-law-energy-swift) [![](https://img.shields.io/endpoint?url=https%3A%2F%2Fswiftpackageindex.com%2Fapi%2Fpackages%2FThe-Igor%2Fbluetooth-law-energy-swift%2Fbadge%3Ftype%3Dplatforms)](https://swiftpackageindex.com/The-Igor/bluetooth-law-energy-swift)
 
-## SwiftUI example (Extended example is coming)
+## SwiftUI example
 
 For an example of using `BluetoothLEManager` in a SwiftUI application, please follow the link [swiftui example](https://github.com/The-Igor/bluetooth-law-energy_example).
 
@@ -58,8 +58,7 @@ For an example of using `BluetoothLEManager` in a SwiftUI application, please fo
 | `getPeripheralPublisher` | Property   | Gets the peripheral publisher from the delegate handler.                                             | `PeripheralPublisher`                            |
 | `peripheralsStream`      | Property   | Provides an asynchronous stream of discovered Bluetooth peripherals.                                  | `AsyncStream<[CBPeripheral]>`                    |
 | `discoverServices`       | Method     | Discovers services for a given peripheral. Throws an error if service discovery fails or the peripheral is already connected. | `async throws -> [CBService]` |
-| `connect`                | Method     | Connects to a specified peripheral. Throws an error if the connection fails.                         | `async throws -> CBPeripheral`                   |
-| `disconnect`             | Method     | Disconnects from a specified peripheral. Throws an error if the disconnection fails.                 | `async throws -> CBPeripheral`                   |
+
 
 ### Description of `IBluetoothLEManager` Protocol
 

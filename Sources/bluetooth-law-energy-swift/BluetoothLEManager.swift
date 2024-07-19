@@ -2,7 +2,7 @@
 //  BluetoothLEManager.swift
 //
 //
-//  Created by Igor  on 12.07.24.
+//  Created by Igor on 12.07.24.
 //
 
 import Combine
@@ -11,18 +11,25 @@ import retry_policy_service
 
 @available(macOS 12, iOS 15, tvOS 15.0, watchOS 8.0, *)
 public actor BluetoothLEManager: NSObject, ObservableObject, Sendable {
-       
+    
+    /// A subject that publishes the BLE state changes to the main actor.
     @MainActor
     public let bleState: CurrentValueSubject<BLEState, Never> = .init(.init())
     
+    /// Internal state variables
     var isAuthorized = false
     var isPowered = false
     var isScanning = false
 
+    /// Typealiases for publishers
     private typealias StatePublisher = AnyPublisher<CBManagerState, Never>
     private typealias PeripheralPublisher = AnyPublisher<[CBPeripheral], Never>
+    
+    /// Publishers for state and peripheral updates
     private var getStatePublisher: StatePublisher { delegateHandler.statePublisher }
     private var getPeripheralPublisher: PeripheralPublisher { delegateHandler.peripheralPublisher }
+    
+    /// Internal types and instances
     private typealias Delegate = BluetoothDelegate
     private let state = BluetoothLEManager.State()
     private let stream = Stream()
@@ -33,27 +40,77 @@ public actor BluetoothLEManager: NSObject, ObservableObject, Sendable {
     
     private let cachedServices = CachedServices()
     
+    /// Initializes the BluetoothLEManager.
     public override init() {
         delegateHandler = Delegate()
         centralManager = CBCentralManager(delegate: delegateHandler, queue: queue)
         super.init()
-        Task{
-          await setupSubscriptions()
-        }
+        setupSubscriptions()
         print("BluetoothManager initialized on \(Date())")
     }
     
+    /// Deinitializes the BluetoothLEManager.
     deinit {
         print("BluetoothManager deinitialized")
     }
     
+    // MARK: - API
+    
+    /// Provides a stream of discovered peripherals.
     @MainActor
-    public func connect(to peripheral: CBPeripheral) async throws {
+    public var peripheralsStream: AsyncStream<[CBPeripheral]> {
+        return stream.peripheralsStream()
+    }
+    
+    /// Fetches services for a given peripheral, with optional caching.
+    ///
+    /// - Parameters:
+    ///   - peripheral: The `CBPeripheral` instance to fetch services for.
+    ///   - cache: A Boolean value indicating whether to use cached data.
+    /// - Returns: An array of `CBService` instances.
+    /// - Throws: An error if the services could not be fetched.
+    @MainActor
+    public func fetchServices(for peripheral: CBPeripheral, cache: Bool = true) async throws -> [CBService] {
+        defer {
+            centralManager.cancelPeripheralConnection(peripheral)
+        }
         
+        // Define the retry policy
+        let retry = RetryService(strategy: .exponential(retry: 3, multiplier: 2, duration: .seconds(3), timeout: .seconds(12)))
+
+        for (step, delay) in retry.enumerated() {
+            do {
+                try await connect(to: peripheral)
+                return try await discover(for: peripheral, cache: cache)
+            } catch {
+                // Handle the error (e.g., log it)
+            }
+            try? await Task.sleep(nanoseconds: delay)
+            
+            // Return cached services if available
+            if cache, let services = await cachedServices.getData(key: peripheral.getId) {
+                return services
+            }
+        }
+        
+        // Final attempt to connect and discover services
+        try await connect(to: peripheral)
+        return try await discover(for: peripheral, cache: cache)
+    }
+    
+    // MARK: - Private Methods
+    
+    /// Connects to a specific peripheral.
+    ///
+    /// - Parameter peripheral: The `CBPeripheral` instance to connect to.
+    /// - Throws: `BluetoothLEManager.Errors` if the connection fails.
+    @MainActor
+    private func connect(to peripheral: CBPeripheral) async throws {
         guard peripheral.isNotConnected else {
             throw Errors.connected(peripheral)
         }
         
+        // Use continuation to handle the async connection
         return try await withCheckedThrowingContinuation { continuation in
             Task {
                 let id = peripheral.getId
@@ -64,50 +121,29 @@ public actor BluetoothLEManager: NSObject, ObservableObject, Sendable {
         }
     }
     
+    /// Discovers services for a connected peripheral.
+    ///
+    /// - Parameters:
+    ///   - peripheral: The `CBPeripheral` instance to discover services for.
+    ///   - cache: A Boolean value indicating whether to cache the services.
+    /// - Returns: An array of `CBService` instances.
+    /// - Throws: An error if the services could not be discovered.
     @MainActor
-    public var peripheralsStream: AsyncStream<[CBPeripheral]> {
-        return stream.peripheralsStream()
-    }
-    
-    @MainActor
-    public func fetchServices(for peripheral: CBPeripheral, cache : Bool = true) async throws -> [CBService] {
-        defer {
-            centralManager.cancelPeripheralConnection(peripheral)
-        }
-        
-        let retry = RetryService(strategy: .exponential(retry: 5, multiplier: 2, duration: .seconds(5), timeout: .seconds(150)))
-
-        for (step, delay) in retry.enumerated(){
-            do{
-                try await connect(to: peripheral)
-                return try await discover(for: peripheral, cache: cache)
-            }catch{
-                if cache, let services = await cachedServices.getData(key: peripheral.getId){
-                    return services
-                }
-            }
-            try? await Task.sleep(nanoseconds: delay)
-        }
-            
-        try await connect(to: peripheral)
-        return try await discover(for: peripheral, cache: cache)
-
-    }
-    
-    @MainActor
-    private func discover(for peripheral: CBPeripheral, cache : Bool) async throws -> [CBService] {
-        
-        defer{ peripheral.delegate = nil }
+    private func discover(for peripheral: CBPeripheral, cache: Bool) async throws -> [CBService] {
+        defer { peripheral.delegate = nil }
         
         let delegate = PeripheralDelegate()
-            peripheral.delegate = delegate
+        peripheral.delegate = delegate
         let services = try await delegate.fetchServices(for: peripheral)
-        if cache{
+        
+        // Cache the services if required
+        if cache {
             await cachedServices.add(key: peripheral.getId, services: services)
         }
         return services
     }
     
+    /// Sets up Combine subscriptions for state and peripheral changes.
     private func setupSubscriptions() {
         getPeripheralPublisher
             .sink { [weak self] peripherals in
@@ -130,16 +166,26 @@ public actor BluetoothLEManager: NSObject, ObservableObject, Sendable {
             .store(in: &cancellables)
     }
     
+    /// Handles changes in discovered peripherals.
+    ///
+    /// - Parameter peripherals: An array of discovered `CBPeripheral` instances.
     private func handlePeripheralChange(_ peripherals: [CBPeripheral]) {
         stream.updatePeripherals(peripherals)
     }
     
+    /// Checks if Bluetooth is ready (powered on and authorized).
     private var checkIfBluetoothReady: Bool {
         isAuthorized = State.isBluetoothAuthorized
         isPowered = State.isBluetoothPoweredOn(for: centralManager)
         return isPowered && isAuthorized
     }
     
+    /// Checks if scanning should start or stop based on the state and subscriber count.
+    ///
+    /// - Parameters:
+    ///   - state: The current `CBManagerState`.
+    ///   - subscriberCount: The number of subscribers.
+    /// - Returns: The updated `BLEState`.
     private func checkForScan(_ state: CBManagerState, _ subscriberCount: Int) -> BLEState {
         guard checkIfBluetoothReady else {
             stopScanning()
@@ -164,10 +210,12 @@ public actor BluetoothLEManager: NSObject, ObservableObject, Sendable {
         )
     }
     
+    /// Starts scanning for peripherals.
     private func startScanning() {
         centralManager.scanForPeripherals(withServices: nil, options: nil)
     }
     
+    /// Stops scanning for peripherals.
     private func stopScanning() {
         centralManager.stopScan()
     }
