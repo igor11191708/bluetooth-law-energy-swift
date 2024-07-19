@@ -22,13 +22,12 @@ extension BluetoothLEManager {
         ///   - peripheral: The `CBPeripheral` instance that discovered services
         ///   - error: An optional error if the discovery failed
         public func peripheral(_ peripheral: CBPeripheral, didDiscoverServices error: Error?) {
-                    
+               
+            Task{
             if let error = error {
-                Task{
-                    await service.handleResult(for: peripheral, result: .failure(BluetoothLEManager.Errors.connection(peripheral, error)))
-                }
+                await service.handleResult(for: peripheral, result: .failure(BluetoothLEManager.Errors.discoveringServices(peripheral.getName, error)))
+                
             } else if let services = peripheral.services {
-                Task{
                     await service.handleResult(for: peripheral, result: .success(services))
                 }
             }
@@ -46,6 +45,11 @@ extension BluetoothLEManager {
                     let id = peripheral.getId
                     let name = peripheral.getName
                     try await service.register(to: id, name: name, with: continuation)
+                    guard peripheral.isConnected else{
+                        await service.handleResult(for: peripheral, result: .failure(BluetoothLEManager.Errors.discoveringServices(peripheral.getName, nil)))
+                        return
+                    }
+                    
                     peripheral.discoverServices(nil)
                 }
             }

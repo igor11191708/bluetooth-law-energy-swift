@@ -12,16 +12,16 @@ public extension BluetoothLEManager {
     enum Errors: Error, LocalizedError {
         
         /// Error encountered while discovering services.
-        case discoveringServicesError(String)
+        case discoveringServices(String, Error?)
         
         /// Error encountered while connecting.
         case connection(CBPeripheral, Error?)
         
-        /// Error encountered while disconnecting.
-        case disconnection(CBPeripheral, Error?)
-        
         /// Error when peripheral is already connected.
         case connected(CBPeripheral)
+        
+        /// Error when peripheral is not connected.
+        case notConnected(String)
         
         /// Error when peripheral is currently connecting.
         case connecting(String)
@@ -34,14 +34,18 @@ public extension BluetoothLEManager {
         
         public var errorDescription: String? {
             switch self {
-            case .discoveringServicesError(let message):
-                return NSLocalizedString("Error discovering services: \(message)", comment: "Discovering Services Error")
+            case .discoveringServices(let message, let error):
+                if let error = error {
+                    return NSLocalizedString("Error discovering services for \(message): \(error.localizedDescription)", comment: "Discovering Services Error")
+                } else {
+                    return NSLocalizedString("Error discovering services for \(message)", comment: "Discovering Services Error")
+                }
             case .connection(let peripheral, let error):
                 return NSLocalizedString("Error connecting to \(peripheral.name ?? "unknown peripheral"): \(error?.localizedDescription ?? "unknown error")", comment: "Connection Error")
-            case .disconnection(let peripheral, let error):
-                return NSLocalizedString("Error disconnecting from \(peripheral.name ?? "unknown peripheral"): \(error?.localizedDescription ?? "unknown error")", comment: "Disconnection Error")
             case .connected(let peripheral):
                 return NSLocalizedString("The peripheral \(peripheral.name ?? "unknown peripheral") is already connected. Please disconnect and try again.", comment: "Already Connected Error")
+            case .notConnected(let name):
+                return NSLocalizedString("The peripheral \(name) is not connected. Please connect first.", comment: "Not Connected Error")
             case .connecting(let name):
                 return NSLocalizedString("The peripheral \(name) is currently connecting. Please wait until the connection is complete.", comment: "Connecting Error")
             case .timeout:
