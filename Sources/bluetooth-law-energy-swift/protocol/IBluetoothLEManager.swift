@@ -9,7 +9,6 @@ import Foundation
 import Combine
 import CoreBluetooth
 
-@MainActor
 @available(macOS 11, iOS 14, tvOS 15.0, watchOS 8.0, *)
 public protocol IBluetoothLEManager {
     

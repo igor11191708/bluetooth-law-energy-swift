@@ -18,11 +18,7 @@ extension BluetoothLEManager {
         /// A subject to publish discovered Bluetooth peripherals.
         private let peripheralSubject = CurrentValueSubject<[CBPeripheral], Never>([])
                 
-        /// The `ConnectionService` instance, initialized lazily.
-        private let connectionService: ConnectionService = .init()
-        
-        /// The `ConnectionService` instance, initialized lazily.
-        private let disconnectionService: DisconnectionService = .init()
+        private let service: RegistrationService<Void> = .init(type: .connection)
         
         // MARK: - API
         
@@ -34,22 +30,13 @@ extension BluetoothLEManager {
         ///   - timeout: The time interval to wait before timing out the connection attempt.
         /// - Returns: The connected `CBPeripheral`.
         /// - Throws: A `BluetoothLEManager.Errors` error if the connection fails.
-        @discardableResult
-        public func connect(to peripheral: CBPeripheral, with manager: CBCentralManager) async throws -> CBPeripheral {
-               try await connectionService.connect(to: peripheral, using: manager)
+        public func register(
+            to id: UUID,
+            name : String,
+            with continuation : CheckedContinuation<Void, Error>) async throws{
+                try await service.register(to: id, name: name, with: continuation)
         }
         
-        /// Disconnects from a given peripheral.
-        ///
-        /// - Parameters:
-        ///   - peripheral: The `CBPeripheral` instance to disconnect from.
-        ///   - manager: The `CBCentralManager` used to manage the disconnection.
-        /// - Returns: The disconnected `CBPeripheral`.
-        /// - Throws: A `BluetoothLEManager.Errors` error if the disconnection fails.
-        @discardableResult
-        public func disconnect(from peripheral: CBPeripheral, with manager: CBCentralManager) async throws -> CBPeripheral {
-            try await disconnectionService.disconnect(from: peripheral, using: manager)
-        }
         
         /// A publisher for Bluetooth state updates, applying custom operators to handle initial powered-off state and receive on the main thread.
         public var statePublisher: AnyPublisher<CBManagerState, Never> {
@@ -96,7 +83,7 @@ extension BluetoothLEManager {
         ///   - peripheral: The peripheral that has successfully connected.
         public func centralManager(_ central: CBCentralManager, didConnect peripheral: CBPeripheral) {
             Task{
-                await connectionService.handleDidConnect(peripheral)
+                await service.handleResult(for: peripheral, result: .success(Void()))
             }
         }
         
@@ -108,7 +95,7 @@ extension BluetoothLEManager {
         ///   - error: The error that occurred during the connection attempt.
         public func centralManager(_ central: CBCentralManager, didFailToConnect peripheral: CBPeripheral, error: Error?) {
             Task{
-                await connectionService.handleDidFailToConnect(peripheral , with: error)
+                await service.handleResult(for: peripheral, result: .failure(BluetoothLEManager.Errors.connection(peripheral, error)))
             }
         }
         
@@ -119,9 +106,7 @@ extension BluetoothLEManager {
         ///   - peripheral: The peripheral that has disconnected.
         ///   - error: The error that occurred during the disconnection, if any.
         public func centralManager(_ central: CBCentralManager, didDisconnectPeripheral peripheral: CBPeripheral, error: Error?) {
-            Task{
-                await disconnectionService.handleDidDisconnect(peripheral, with:error)
-            }
+            // TODO: implement
         }
     }
 }
