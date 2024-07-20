@@ -46,7 +46,7 @@ public actor BluetoothLEManager: NSObject, ObservableObject, Sendable {
         centralManager = CBCentralManager(delegate: delegateHandler, queue: queue)
         super.init()
         Task {
-            await setupSubscriptions()
+            await setupSubscriptions() // Subscriptions for UI indicators So we can afford this init async
         }
         print("BluetoothManager initialized on \(Date())")
     }
