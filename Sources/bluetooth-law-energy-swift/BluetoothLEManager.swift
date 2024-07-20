@@ -45,7 +45,9 @@ public actor BluetoothLEManager: NSObject, ObservableObject, Sendable {
         delegateHandler = Delegate()
         centralManager = CBCentralManager(delegate: delegateHandler, queue: queue)
         super.init()
-        setupSubscriptions()
+        Task {
+            await setupSubscriptions()
+        }
         print("BluetoothManager initialized on \(Date())")
     }
     
@@ -78,7 +80,7 @@ public actor BluetoothLEManager: NSObject, ObservableObject, Sendable {
         // Define the retry policy
         let retry = RetryService(strategy: .exponential(retry: 3, multiplier: 2, duration: .seconds(3), timeout: .seconds(12)))
 
-        for (step, delay) in retry.enumerated() {
+        for (_, delay) in retry.enumerated() {
             do {
                 try await connect(to: peripheral)
                 return try await discover(for: peripheral, cache: cache)
