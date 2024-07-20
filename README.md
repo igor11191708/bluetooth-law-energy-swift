@@ -51,18 +51,27 @@ For an example of using `BluetoothLEManager` in a SwiftUI application, please fo
 
 | Name                     | Type       | Description                                                                                          | Type/Return Type                                  |
 |--------------------------|------------|------------------------------------------------------------------------------------------------------|--------------------------------------------------|
-| `isAuthorized`           | Property   | Indicates if Bluetooth is authorized.                                                                | `Bool`                                           |
-| `isPowered`              | Property   | Indicates if Bluetooth is powered on.                                                                | `Bool`                                           |
-| `isScanning`             | Property   | Indicates if scanning for peripherals is ongoing.                                                    | `Bool`                                           |
-| `getStatePublisher`      | Property   | Gets the state publisher from the delegate handler.                                                  | `StatePublisher`                                 |
-| `getPeripheralPublisher` | Property   | Gets the peripheral publisher from the delegate handler.                                             | `PeripheralPublisher`                            |
+| `bleState`               | Property   | A subject that publishes the BLE state changes.                                                      | `CurrentValueSubject<BLEState, Never>`           |
 | `peripheralsStream`      | Property   | Provides an asynchronous stream of discovered Bluetooth peripherals.                                  | `AsyncStream<[CBPeripheral]>`                    |
-| `discoverServices`       | Method     | Discovers services for a given peripheral. Throws an error if service discovery fails or the peripheral is already connected. | `async throws -> [CBService]` |
+| `fetchServices`          | Method     | Fetches services for a given peripheral, with optional caching.                                       | `async throws -> [CBService]`                    |
+
+
+### BLEState
+
+The `BLEState` struct provides information about the current state of Bluetooth on the device. This struct includes three key properties that indicate whether Bluetooth is authorized, powered on, and actively scanning for peripherals.
+
+#### Properties
+
+| Name           | Type   | Description                                                                 |
+|----------------|--------|-----------------------------------------------------------------------------|
+| `isAuthorized` | Bool   | Indicates if Bluetooth is authorized (`true` if authorized, `false` otherwise). |
+| `isPowered`    | Bool   | Indicates if Bluetooth is powered on (`true` if powered, `false` otherwise). |
+| `isScanning`   | Bool   | Indicates if Bluetooth is currently scanning for peripherals (`true` if scanning, `false` otherwise). |
 
 
 ### Description of `IBluetoothLEManager` Protocol
 
-The `IBluetoothLEManager` protocol encapsulates the essential functionalities required for managing BLE operations. It includes properties for Bluetooth state, scanning status, and publishers for state and peripherals. The protocol also provides a method for discovering services on a given peripheral.
+The `IBluetoothLEManager` protocol defines the essential functionalities for managing Bluetooth Low Energy (BLE) operations. It includes properties and methods for monitoring the state of Bluetooth, discovering peripherals, and fetching services for a specific peripheral. This protocol is intended to be implemented by classes or structures that handle Bluetooth communication in a macOS, iOS, tvOS, or watchOS environment.
 
 ## License
 

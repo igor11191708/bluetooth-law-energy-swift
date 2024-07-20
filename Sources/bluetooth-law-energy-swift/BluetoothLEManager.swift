@@ -10,7 +10,7 @@ import CoreBluetooth
 import retry_policy_service
 
 @available(macOS 12, iOS 15, tvOS 15.0, watchOS 8.0, *)
-public actor BluetoothLEManager: NSObject, ObservableObject, Sendable {
+public actor BluetoothLEManager: NSObject, ObservableObject, IBluetoothLEManager {
     
     /// A subject that publishes the BLE state changes to the main actor.
     @MainActor

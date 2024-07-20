@@ -9,31 +9,25 @@ import Foundation
 import Combine
 import CoreBluetooth
 
-@available(macOS 11, iOS 14, tvOS 15.0, watchOS 8.0, *)
+@available(macOS 12, iOS 15, tvOS 15.0, watchOS 8.0, *)
+/// A protocol defining the Bluetooth LE manager functionality.
 public protocol IBluetoothLEManager {
-    
-    /// A typealias for the state publisher.
-    typealias StatePublisher = AnyPublisher<CBManagerState, Never>
-    
-    /// A typealias for the peripheral publisher.
-    typealias PeripheralPublisher = AnyPublisher<[CBPeripheral], Never>
-    
-    /// A property to indicate if Bluetooth is authorized.
-    var isAuthorized: Bool { get set }
-    
-    /// A property to indicate if Bluetooth is powered on.
-    var isPowered: Bool { get set }
-    
-    /// A property to indicate if scanning for peripherals is ongoing.
-    var isScanning: Bool { get set }
-    
+
+    /// A subject that publishes the BLE state changes.
+    @MainActor
+    var bleState: CurrentValueSubject<BLEState, Never> { get }
+
     /// Provides an asynchronous stream of discovered Bluetooth peripherals.
+    @MainActor
     var peripheralsStream: AsyncStream<[CBPeripheral]> { get }
-    
-    /// Discovers services for a given peripheral.
+
+    /// Fetches services for a given peripheral, with optional caching.
     ///
-    /// - Parameter peripheral: The `CBPeripheral` instance for which to discover services.
-    /// - Returns: An array of `CBService` representing the services supported by the peripheral.
-    /// - Throws: A `BluetoothLEManager.Errors` error if service discovery fails or the peripheral is already connected.
-    func discoverServices(for peripheral: CBPeripheral) async throws -> [CBService]
+    /// - Parameters:
+    ///   - peripheral: The `CBPeripheral` instance to fetch services for.
+    ///   - cache: A Boolean value indicating whether to use cached data.
+    /// - Returns: An array of `CBService` instances.
+    /// - Throws: An error if the services could not be fetched.
+    @MainActor
+    func fetchServices(for peripheral: CBPeripheral, cache: Bool) async throws -> [CBService]
 }
