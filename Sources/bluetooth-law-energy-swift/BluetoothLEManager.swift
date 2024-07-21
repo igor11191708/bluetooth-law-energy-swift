@@ -79,6 +79,10 @@ public actor BluetoothLEManager: NSObject, ObservableObject, IBluetoothLEManager
         
         let retry = RetryService(strategy: .exponential(retry: 3, multiplier: 2, duration: .seconds(3), timeout: .seconds(12)))
         
+        if cache, let services = await cachedServices.getData(key: peripheral.getId) {
+            return services
+        }
+        
         for (_, delay) in retry.enumerated() {
             do {
                 return try await attemptFetchServices(for: peripheral, cache: cache)
