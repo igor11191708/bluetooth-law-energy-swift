@@ -77,19 +77,15 @@ public actor BluetoothLEManager: NSObject, ObservableObject, IBluetoothLEManager
             centralManager.cancelPeripheralConnection(peripheral)
         }
         
-        // Define the retry policy
         let retry = RetryService(strategy: .exponential(retry: 3, multiplier: 2, duration: .seconds(3), timeout: .seconds(12)))
 
         for (_, delay) in retry.enumerated() {
             do {
                 try await connect(to: peripheral)
                 return try await discover(for: peripheral, cache: cache)
-            } catch {
-                // Handle the error (e.g., log it)
-            }
+            } catch { }
             try? await Task.sleep(nanoseconds: delay)
             
-            // Return cached services if available
             if cache, let services = await cachedServices.getData(key: peripheral.getId) {
                 return services
             }
@@ -138,10 +134,10 @@ public actor BluetoothLEManager: NSObject, ObservableObject, IBluetoothLEManager
         peripheral.delegate = delegate
         let services = try await delegate.fetchServices(for: peripheral)
         
-        // Cache the services if required
         if cache {
             await cachedServices.add(key: peripheral.getId, services: services)
         }
+        
         return services
     }
     
