@@ -78,12 +78,12 @@ public actor BluetoothLEManager: NSObject, ObservableObject, IBluetoothLEManager
         }
         
         let retry = RetryService(strategy: .exponential(retry: 3, multiplier: 2, duration: .seconds(3), timeout: .seconds(12)))
-
+        
         for (_, delay) in retry.enumerated() {
             do {
-                try await connect(to: peripheral)
-                return try await discover(for: peripheral, cache: cache)
+                return try await attemptFetchServices(for: peripheral, cache: cache)
             } catch { }
+            
             try? await Task.sleep(nanoseconds: delay)
             
             if cache, let services = await cachedServices.getData(key: peripheral.getId) {
@@ -92,11 +92,24 @@ public actor BluetoothLEManager: NSObject, ObservableObject, IBluetoothLEManager
         }
         
         // Final attempt to connect and discover services
-        try await connect(to: peripheral)
-        return try await discover(for: peripheral, cache: cache)
+        return try await attemptFetchServices(for: peripheral, cache: cache)
     }
     
     // MARK: - Private Methods
+    
+    /// Attempts to connect to the given peripheral and fetch its services.
+    ///
+    /// - Parameters:
+    ///   - peripheral: The `CBPeripheral` to connect to.
+    ///   - cache: A Boolean value indicating whether to use cached services if available.
+    ///
+    /// - Returns: An array of `CBService` objects representing the services of the peripheral.
+    ///
+    /// - Throws: An error if the connection or service discovery fails.
+    private func attemptFetchServices(for peripheral: CBPeripheral, cache: Bool) async throws -> [CBService] {
+        try await connect(to: peripheral)
+        return try await discover(for: peripheral, cache: cache)
+    }
     
     /// Connects to a specific peripheral.
     ///
