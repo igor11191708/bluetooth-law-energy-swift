@@ -44,8 +44,8 @@ extension BluetoothLEManager{
         /// - Returns: An `AsyncStream` of an array of `CBPeripheral` objects.
         public func peripheralsStream() -> AsyncStream<[CBPeripheral]> {
             return AsyncStream { [weak self] continuation in
-                self?.queue.async(flags: .barrier) {
-                    guard let self = self else { return }
+                guard let self = self else { return }
+                self.queue.async(flags: .barrier) {
                     let subscriberID = self.getID
                     self.initializeSubscriber(with: subscriberID, and: continuation)
                     self.onTerminateSubscriber(with: subscriberID, and: continuation)
