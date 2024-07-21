@@ -9,6 +9,8 @@ import Foundation
 
 @available(iOS, introduced: 15.0)
 @available(macOS, introduced: 12.0)
+@available(watchOS, introduced: 8.0)
+@available(tvOS, introduced: 15.0)
 extension Task where Success == Never, Failure == Never {
     
     /// Suspends the current task for the given time interval.
