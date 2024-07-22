@@ -65,7 +65,6 @@ public actor BluetoothLEManager: NSObject, ObservableObject, IBluetoothLEManager
     }
     
     /// Fetches services for a given peripheral, with optional caching.
-    ///
     /// - Parameters:
     ///   - peripheral: The `CBPeripheral` instance to fetch services for.
     ///   - cache: A Boolean value indicating whether to use cached data.
@@ -99,6 +98,46 @@ public actor BluetoothLEManager: NSObject, ObservableObject, IBluetoothLEManager
         return try await attemptFetchServices(for: peripheral, cache: cache)
     }
     
+    /// Connects to a specific peripheral.
+    /// Always use the same CBCentralManager instance to manage connections and disconnections for a peripheral to avoid errors and ensure correct behavior
+    /// - Parameter peripheral: The `CBPeripheral` instance to connect to.
+    /// - Throws: `BluetoothLEManager.Errors` if the connection fails.
+    @MainActor
+    public func connect(to peripheral: CBPeripheral) async throws {
+        guard peripheral.isNotConnected else {
+            throw Errors.connected(peripheral)
+        }
+        
+        return try await withCheckedThrowingContinuation { continuation in
+            Task {
+                let id = peripheral.getId
+                let name = peripheral.getName
+                try await delegateHandler.connect(to: id, name: name, with: continuation)
+                centralManager.connect(peripheral, options: nil)
+            }
+        }
+    }
+    
+    /// Disconnects from a specific peripheral.
+    /// Always use the same CBCentralManager instance to manage connections and disconnections for a peripheral to avoid errors and ensure correct behavior
+    /// - Parameter peripheral: The `CBPeripheral` instance to connect to.
+    /// - Throws: `BluetoothLEManager.Errors` if the connection fails.
+    @MainActor
+    public func disconnect(from peripheral: CBPeripheral) async throws {
+        guard peripheral.isConnected else {
+            throw Errors.notConnected(peripheral.getName)
+        }
+        
+        return try await withCheckedThrowingContinuation { continuation in
+            Task {
+                let id = peripheral.getId
+                let name = peripheral.getName
+                try await delegateHandler.connect(to: id, name: name, with: continuation)
+                centralManager.cancelPeripheralConnection(peripheral)
+            }
+        }
+    }
+    
     // MARK: - Private Methods
     
     /// Attempts to connect to the given peripheral and fetch its services.
@@ -115,26 +154,6 @@ public actor BluetoothLEManager: NSObject, ObservableObject, IBluetoothLEManager
         return try await discover(for: peripheral, cache: cache)
     }
     
-    /// Connects to a specific peripheral.
-    ///
-    /// - Parameter peripheral: The `CBPeripheral` instance to connect to.
-    /// - Throws: `BluetoothLEManager.Errors` if the connection fails.
-    @MainActor
-    private func connect(to peripheral: CBPeripheral) async throws {
-        guard peripheral.isNotConnected else {
-            throw Errors.connected(peripheral)
-        }
-        
-        // Use continuation to handle the async connection
-        return try await withCheckedThrowingContinuation { continuation in
-            Task {
-                let id = peripheral.getId
-                let name = peripheral.getName
-                try await delegateHandler.register(to: id, name: name, with: continuation)
-                centralManager.connect(peripheral, options: nil)
-            }
-        }
-    }
     
     /// Discovers services for a connected peripheral.
     ///

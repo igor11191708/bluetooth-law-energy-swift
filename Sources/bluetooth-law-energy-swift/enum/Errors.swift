@@ -31,6 +31,9 @@ public extension BluetoothLEManager {
         
         /// Error when an operation times out.
         case timeoutServices
+
+        /// Error encountered while disconnecting.
+        case disconnection(CBPeripheral, Error?)
         
         public var errorDescription: String? {
             switch self {
@@ -52,6 +55,8 @@ public extension BluetoothLEManager {
                 return NSLocalizedString("Connecting operation timed out for peripheral.", comment: "Timeout Error")
             case .timeoutServices:
                 return NSLocalizedString("Discovering operation timed out for peripheral.", comment: "Timeout Error")
+            case .disconnection(let peripheral, let error):
+                return NSLocalizedString("Error disconnecting from \(peripheral.name ?? "unknown peripheral"): \(error?.localizedDescription ?? "unknown error")", comment: "Disconnection Error")
             }
         }
     }

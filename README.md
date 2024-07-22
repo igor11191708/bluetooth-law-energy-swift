@@ -1,4 +1,4 @@
-# Asynchronous Bluetooth Low Energy
+# Asynchronous Bluetooth Low Energy Kit
 ## Leveraging swift new concurrency model
 
 [![](https://img.shields.io/endpoint?url=https%3A%2F%2Fswiftpackageindex.com%2Fapi%2Fpackages%2FThe-Igor%2Fbluetooth-law-energy-swift%2Fbadge%3Ftype%3Dswift-versions)](https://swiftpackageindex.com/The-Igor/bluetooth-law-energy-swift) [![](https://img.shields.io/endpoint?url=https%3A%2F%2Fswiftpackageindex.com%2Fapi%2Fpackages%2FThe-Igor%2Fbluetooth-law-energy-swift%2Fbadge%3Ftype%3Dplatforms)](https://swiftpackageindex.com/The-Igor/bluetooth-law-energy-swift)
@@ -69,11 +69,15 @@ For an example of using `BluetoothLEManager` in a SwiftUI application, please fo
    
 ## Public API
 
+## Public API
+
 | Name                     | Type       | Description                                                                                          | Type/Return Type                                  |
 |--------------------------|------------|------------------------------------------------------------------------------------------------------|--------------------------------------------------|
 | `bleState`               | Property   | A subject that publishes the BLE state changes.                                                      | `CurrentValueSubject<BLEState, Never>`           |
 | `peripheralsStream`      | Property   | Provides an asynchronous stream of discovered Bluetooth peripherals.                                  | `AsyncStream<[CBPeripheral]>`                    |
 | `fetchServices`          | Method     | Fetches services for a given peripheral, with optional caching.                                       | `async throws -> [CBService]`                    |
+| `connect`                | Method     | Connects to a specific peripheral. Should be used on the same instance of `BluetoothLEManager` to avoid errors. | `@MainActor async throws -> Void`                |
+| `disconnect`             | Method     | Disconnects from a specific peripheral. Should be used on the same instance of `BluetoothLEManager` to avoid errors. | `@MainActor async throws -> Void`                |
 
 
 ### BLEState

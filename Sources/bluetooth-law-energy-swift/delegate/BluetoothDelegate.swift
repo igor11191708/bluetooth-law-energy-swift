@@ -18,7 +18,9 @@ extension BluetoothLEManager {
         /// A subject to publish discovered Bluetooth peripherals.
         private let peripheralSubject = CurrentValueSubject<[CBPeripheral], Never>([])
                 
-        private let service: RegistrationService<Void> = .init(type: .connection)
+        private let connection: RegistrationService<Void> = .init(type: .connection)
+        
+        private let disconnection: RegistrationService<Void> = .init(type: .disconnection)
         
         // MARK: - API
         
@@ -30,11 +32,11 @@ extension BluetoothLEManager {
         ///   - timeout: The time interval to wait before timing out the connection attempt.
         /// - Returns: The connected `CBPeripheral`.
         /// - Throws: A `BluetoothLEManager.Errors` error if the connection fails.
-        public func register(
+        public func connect(
             to id: UUID,
             name : String,
             with continuation : CheckedContinuation<Void, Error>) async throws{
-                try await service.register(to: id, name: name, with: continuation)
+                try await connection.register(to: id, name: name, with: continuation)
         }
         
         
@@ -83,7 +85,10 @@ extension BluetoothLEManager {
         ///   - peripheral: The peripheral that has successfully connected.
         public func centralManager(_ central: CBCentralManager, didConnect peripheral: CBPeripheral) {
             Task{
-                await service.handleResult(for: peripheral, result: .success(Void()))
+                await connection.handleResult(
+                    for: peripheral,
+                    result: .success(Void())
+                )
             }
         }
         
@@ -95,7 +100,11 @@ extension BluetoothLEManager {
         ///   - error: The error that occurred during the connection attempt.
         public func centralManager(_ central: CBCentralManager, didFailToConnect peripheral: CBPeripheral, error: Error?) {
             Task{
-                await service.handleResult(for: peripheral, result: .failure(BluetoothLEManager.Errors.connection(peripheral, error)))
+                let e = Errors.connection(peripheral, error)
+                await connection.handleResult(
+                    for: peripheral,
+                    result: .failure(e)
+                )
             }
         }
         
@@ -106,7 +115,21 @@ extension BluetoothLEManager {
         ///   - peripheral: The peripheral that has disconnected.
         ///   - error: The error that occurred during the disconnection, if any.
         public func centralManager(_ central: CBCentralManager, didDisconnectPeripheral peripheral: CBPeripheral, error: Error?) {
-            // TODO: implement
+            Task{
+                guard let error else{
+                    await disconnection.handleResult(
+                        for: peripheral,
+                        result: .success(Void())
+                    )
+                    return
+                }
+                
+                let e = Errors.disconnection(peripheral, error)
+                await disconnection.handleResult(
+                    for: peripheral,
+                    result: .failure(e)
+                )
+            }
         }
     }
 }

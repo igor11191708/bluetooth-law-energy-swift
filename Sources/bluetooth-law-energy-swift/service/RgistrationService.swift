@@ -5,6 +5,7 @@ extension BluetoothLEManager {
     
     enum ServiceType: String{
         case connection = "Connecting to"
+        case disconnection = "Disconnecting from"
         case discovering = "Discovering for"
     }
     
