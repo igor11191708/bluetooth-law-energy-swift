@@ -1,40 +1,54 @@
+//
+//  CachedServices.swift
+//
+//
+//  Created by Igor  on 19.07.24.
+//
+
 import CoreBluetooth
 
 extension BluetoothLEManager {
     
-    
-    enum ServiceType: String{
-        case connection = "Connecting to"
-        case disconnection = "Disconnecting from"
-        case discovering = "Discovering for"
-    }
-    
     actor RegistrationService<T> {
         
+        // MARK: - Public Properties
+        
+        /// The type of the service.
+        public let type: ServiceType
+        
+        // MARK: - Private Properties
+        
+        /// A dictionary to keep track of registered continuations.
+        private var register: [UUID: CheckedContinuation<T, Error>] = [:]
+        
+        // MARK: - Initializer
+        
+        /// Initializes the RegistrationService with a given service type.
+        /// - Parameter type: The type of the service.
         init(type: ServiceType) {
             self.type = type
         }
         
+        // MARK: - Public Methods
         
-        public let type : ServiceType
-        
-        typealias Promise = CheckedContinuation<T, Error>
-        
-        private var register: [UUID: Promise] = [:]
-
+        /// Checks if a continuation for a given UUID is not active.
+        /// - Parameter id: The UUID to check.
+        /// - Returns: A Boolean value indicating whether the continuation is not active.
         public func isNotActive(_ id: UUID) -> Bool {
             return register[id] == nil
         }
         
-        public func add(_ continuation: Promise, for id: UUID) {
+        /// Adds a continuation for a given UUID.
+        /// - Parameter continuation: The continuation to add.
+        /// - Parameter id: The UUID to associate with the continuation.
+        public func add(_ continuation: CheckedContinuation<T, Error>, for id: UUID) {
             register[id] = continuation
         }
         
-        private func remove(for id: UUID) {
-            register.removeValue(forKey: id)
-        }
-        
-        func handleResult(for peripheral: CBPeripheral, result: Result<T, Error>) {
+        /// Handles the result of a peripheral operation.
+        /// - Parameter peripheral: The peripheral associated with the operation.
+        /// - Parameter result: The result of the operation.
+        public func handleResult(for peripheral: CBPeripheral, result: Result<T, Error>) {
             let id = peripheral.identifier
             
             guard let continuation = register[id] else {
@@ -44,31 +58,20 @@ extension BluetoothLEManager {
             remove(for: id)
             
             switch result {
-                case .success(let value):
-                    continuation.resume(returning: value)
-                case .failure(let error):
-                    continuation.resume(throwing: error)
-            }
-        }
-
-        private func timeoutTask(for id: UUID, timeout: Double) {
-            Task {
-                try? await Task.sleep(for: timeout)
-                
-                guard let continuation = register[id] else {
-                    return
-                }
-                
-                remove(for: id)
-                
-                #if DEBUG
-                print("timeout \(type) \(id)")
-                #endif
-                
-                continuation.resume(throwing: Errors.timeout)
+            case .success(let value):
+                continuation.resume(returning: value)
+            case .failure(let error):
+                continuation.resume(throwing: error)
             }
         }
         
+        /// Registers a continuation for a given UUID and name with a timeout.
+        /// - Parameters:
+        ///   - id: The UUID to register.
+        ///   - name: The name associated with the UUID.
+        ///   - continuation: The continuation to register.
+        ///   - timeout: The timeout duration for the registration.
+        /// - Throws: An error if the UUID is already active.
         public func register(
             to id: UUID,
             name: String,
@@ -89,6 +92,35 @@ extension BluetoothLEManager {
             
             timeoutTask(for: id, timeout: timeout)
         }
+        
+        // MARK: - Private Methods
+        
+        /// Removes the continuation for a given UUID.
+        /// - Parameter id: The UUID to remove.
+        private func remove(for id: UUID) {
+            register.removeValue(forKey: id)
+        }
+        
+        /// Schedules a timeout task for a given UUID.
+        /// - Parameters:
+        ///   - id: The UUID to associate with the timeout task.
+        ///   - timeout: The duration before the task times out.
+        private func timeoutTask(for id: UUID, timeout: Double) {
+            Task {
+                try? await Task.sleep(for: timeout)
+                
+                guard let continuation = register[id] else {
+                    return
+                }
+                
+                remove(for: id)
+                
+                #if DEBUG
+                print("timeout \(type) \(id)")
+                #endif
+                
+                continuation.resume(throwing: Errors.timeout)
+            }
+        }
     }
 }
-
