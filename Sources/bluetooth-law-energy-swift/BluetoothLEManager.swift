@@ -98,6 +98,7 @@ public actor BluetoothLEManager: NSObject, ObservableObject, IBluetoothLEManager
             } catch { }
             
             try? await Task.sleep(nanoseconds: delay)
+
             
             if cache, let services = await cachedServices.fetch(for: peripheral) {
                 return services
@@ -118,6 +119,8 @@ public actor BluetoothLEManager: NSObject, ObservableObject, IBluetoothLEManager
             throw Errors.connected(peripheral)
         }
         
+        try Task.checkCancellation()
+        
         return try await withCheckedThrowingContinuation { continuation in
             Task {
                 let id = peripheral.getId
@@ -137,6 +140,8 @@ public actor BluetoothLEManager: NSObject, ObservableObject, IBluetoothLEManager
         guard peripheral.isConnected else {
             throw Errors.notConnected(peripheral.getName)
         }
+        
+        try Task.checkCancellation()
         
         return try await withCheckedThrowingContinuation { continuation in
             Task {
@@ -175,6 +180,8 @@ public actor BluetoothLEManager: NSObject, ObservableObject, IBluetoothLEManager
     @MainActor
     private func discover(for peripheral: CBPeripheral, cache: Bool) async throws -> [CBService] {
         defer { peripheral.delegate = nil }
+        
+        try Task.checkCancellation()
         
         let delegate = PeripheralDelegate()
         peripheral.delegate = delegate
