@@ -86,9 +86,10 @@ The `BLEState` struct provides information about the current state of Bluetooth 
 The `IBluetoothLEManager` protocol defines the essential functionalities for managing Bluetooth Low Energy (BLE) operations. It includes properties and methods for monitoring the state of Bluetooth, discovering peripherals, and fetching services for a specific peripheral. This protocol is intended to be implemented by classes or structures that handle Bluetooth communication in a macOS, iOS, tvOS, or watchOS environment.
 
 
-## iOS | macOS
-<img src="https://github.com/The-Igor/bluetooth-law-energy-swift/blob/main/img/ble_manager.jpeg" alt="iOS" style="height: 540px;"/>
-<img src="https://github.com/The-Igor/bluetooth-law-energy-swift/blob/main/img/ble_discover.gif" alt="macOS" style="height: 540px;"/>
+|  iOS | macOS | 
+|------|-------|
+|<img src="https://github.com/The-Igor/bluetooth-law-energy-swift/blob/main/img/ble_manager.jpeg" alt="iOS" style="height: 540px;"/>|
+<img src="https://github.com/The-Igor/bluetooth-law-energy-swift/blob/main/img/ble_discover.gif" alt="macOS" style="height: 540px;"/>|
 
 ## License
 
