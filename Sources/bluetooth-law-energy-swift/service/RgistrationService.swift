@@ -9,7 +9,7 @@ import CoreBluetooth
 
 extension BluetoothLEManager {
     
-    actor RegistrationService<T> {
+    actor ServiceRegistration<T> {
         
         // MARK: - Public Properties
         

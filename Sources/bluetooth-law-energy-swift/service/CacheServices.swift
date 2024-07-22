@@ -7,7 +7,7 @@
 
 import CoreBluetooth
 
-actor CachedServices {
+actor CacheServices {
     
     private var data: [UUID: [CBService]] = [:]
 

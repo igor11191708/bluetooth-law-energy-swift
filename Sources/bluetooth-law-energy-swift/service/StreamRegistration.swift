@@ -12,7 +12,7 @@ import CoreBluetooth
 extension BluetoothLEManager {
     
     // An actor to handle the registration and streaming of discovered Bluetooth peripherals.
-    actor RegistrationStream {
+    actor StreamRegistration {
         
         // Defines a continuation type specific to an array of CBPeripheral.
         public typealias PeripheralsContinuation = AsyncStream<[CBPeripheral]>.Continuation

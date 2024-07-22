@@ -14,7 +14,7 @@ extension BluetoothLEManager {
     public class PeripheralDelegate: NSObject, CBPeripheralDelegate {
         
        
-        private let service: RegistrationService<[CBService]> = .init(type: .discovering)
+        private let service: ServiceRegistration<[CBService]> = .init(type: .discovering)
        
         /// Called when the peripheral discovers services
         ///

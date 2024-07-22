@@ -18,9 +18,9 @@ extension BluetoothLEManager {
         /// A subject to publish discovered Bluetooth peripherals.
         private let peripheralSubject = CurrentValueSubject<[CBPeripheral], Never>([])
                 
-        private let connection: RegistrationService<Void> = .init(type: .connection)
+        private let connection: ServiceRegistration<Void> = .init(type: .connection)
         
-        private let disconnection: RegistrationService<Void> = .init(type: .disconnection)
+        private let disconnection: ServiceRegistration<Void> = .init(type: .disconnection)
         
         // MARK: - API
         

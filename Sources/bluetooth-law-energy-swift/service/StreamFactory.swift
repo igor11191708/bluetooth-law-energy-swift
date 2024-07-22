@@ -24,7 +24,7 @@ extension BluetoothLEManager {
         private let subscriberCountSubject = PassthroughSubject<Int, Never>()
         
         /// Internal service for handling registration and notification of subscribers.
-        private let service: RegistrationStream
+        private let service: StreamRegistration
         
         /// Set to hold any Combine cancellables to manage memory and avoid leaks.
         private var cancellables = Set<AnyCancellable>()
@@ -33,7 +33,7 @@ extension BluetoothLEManager {
         
         /// Initializes the StreamFactory and subscribes to the service's subscriber count.
         init() {
-            self.service = RegistrationStream()
+            self.service = StreamRegistration()
             Task {
                 await self.service.subscriberCountPublisher
                     .sink { [weak self] count in
