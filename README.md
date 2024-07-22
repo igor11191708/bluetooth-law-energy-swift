@@ -52,8 +52,6 @@ For an example of using `BluetoothLEManager` in a SwiftUI application, please fo
    
 ## Public API
 
-## Public API
-
 | Name                     | Type       | Description                                                                                          | Type/Return Type                                  |
 |--------------------------|------------|------------------------------------------------------------------------------------------------------|--------------------------------------------------|
 | `bleState`               | Property   | A subject that publishes the BLE state changes.                                                      | `CurrentValueSubject<BLEState, Never>`           |
