@@ -7,8 +7,6 @@
 
 For an example of using `BluetoothLEManager` in a SwiftUI application, please follow the link [swiftui example](https://github.com/The-Igor/bluetooth-law-energy_example).
 
-![macOS 11](https://github.com/The-Igor/bluetooth-law-energy-swift/blob/main/img/ble_discover.gif) 
-
 ![macOS 11](https://github.com/The-Igor/bluetooth-law-energy-swift/blob/main/img/ble_mac.png) 
 
 ## Main Features 
@@ -94,6 +92,8 @@ The `BLEState` struct provides information about the current state of Bluetooth 
 ### Description of `IBluetoothLEManager` Protocol
 
 The `IBluetoothLEManager` protocol defines the essential functionalities for managing Bluetooth Low Energy (BLE) operations. It includes properties and methods for monitoring the state of Bluetooth, discovering peripherals, and fetching services for a specific peripheral. This protocol is intended to be implemented by classes or structures that handle Bluetooth communication in a macOS, iOS, tvOS, or watchOS environment.
+
+![macOS 11](https://github.com/The-Igor/bluetooth-law-energy-swift/blob/main/img/ble_discover.gif) 
 
 ## License
 
