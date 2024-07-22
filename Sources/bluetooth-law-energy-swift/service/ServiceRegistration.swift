@@ -1,5 +1,5 @@
 //
-//  CachedServices.swift
+//  ServiceRegistration.swift
 //
 //
 //  Created by Igor  on 19.07.24.
@@ -29,7 +29,7 @@ extension BluetoothLEManager {
             self.type = type
         }
         
-        // MARK: - Public Methods
+        // MARK: - API
         
         /// Checks if a continuation for a given UUID is not active.
         /// - Parameter id: The UUID to check.

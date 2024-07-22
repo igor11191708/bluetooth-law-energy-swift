@@ -12,26 +12,32 @@ import CoreBluetooth
 extension BluetoothLEManager {
     
     /// `StreamFactory` is responsible for creating and managing streams related to Bluetooth peripherals.
+    /// It facilitates the connection and communication with Bluetooth devices using CoreBluetooth.
     final class StreamFactory {
         
-        /// Publisher to expose the number of subscribers.
+        /// Publisher to expose the number of subscribers to stream events.
+        /// It uses a Combine publisher to provide reactive updates whenever the subscriber count changes.
         public var subscriberCountPublisher: AnyPublisher<Int, Never> {
             subscriberCountSubject
                 .eraseToAnyPublisher()
         }
         
-        /// Subject to manage subscriber counts internally.
+        /// Subject to manage and broadcast changes in the subscriber count internally.
+        /// This allows for dynamic updates across components that observe these counts.
         private let subscriberCountSubject = PassthroughSubject<Int, Never>()
         
-        /// Internal service for handling registration and notification of subscribers.
+        /// Internal service that handles the registration and notification of Bluetooth peripherals.
+        /// This service centralizes the logic for managing connected peripherals.
         private let service: StreamRegistration
         
         /// Set to hold any Combine cancellables to manage memory and avoid leaks.
+        /// Ensures that subscriptions are cancelled when they are no longer needed.
         private var cancellables = Set<AnyCancellable>()
         
         // MARK: - Initializer
         
-        /// Initializes the StreamFactory and subscribes to the service's subscriber count.
+        /// Initializes the `StreamFactory` and sets up a subscription to the service's subscriber count.
+        /// This ensures that the factory is aware of the number of active observers and can manage resources accordingly.
         init() {
             self.service = StreamRegistration()
             Task {
@@ -44,7 +50,7 @@ extension BluetoothLEManager {
             }
         }
         
-        /// Prints debug message on deinitialization to help with tracking lifecycle issues.
+        /// Deinitializer that logs the deinitialization process for debugging purposes.
         deinit {
             #if DEBUG
             print("Stream factory deinitialized")
@@ -53,14 +59,18 @@ extension BluetoothLEManager {
         
         // MARK: - API
         
-        /// Provides an asynchronous stream of discovered peripherals.
+        /// Provides an asynchronous stream of discovered peripherals using the service layer.
+        /// This method returns a stream that emits arrays of `CBPeripheral` objects as they are discovered.
+        /// - Returns: An `AsyncStream` emitting arrays of `CBPeripheral` objects.
         public func peripheralsStream() async -> AsyncStream<[CBPeripheral]> {
             await service.stream
         }
         
-        /// Updates the list of peripherals and notifies all subscribers.
+        /// Updates the list of discovered peripherals and notifies all registered subscribers.
+        /// This method is asynchronous and ensures that notifications are sent in response to changes in the peripheral list.
+        /// - Parameter peripherals: An array of `CBPeripheral` objects representing the discovered peripherals.
         public func updatePeripherals(_ peripherals: [CBPeripheral]) async {
-           await self.service.notifySubscribers(peripherals)
+            await self.service.notifySubscribers(peripherals)
         }
     }
 }
