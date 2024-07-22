@@ -23,7 +23,8 @@ actor CachedServices {
         data = [:]
     }
 
-    func getData(key: UUID) -> [CBService]? {
+    func fetch(for peripheral: CBPeripheral) -> [CBService]? {
+        let key = peripheral.getId
         return data[key]
     }
 }

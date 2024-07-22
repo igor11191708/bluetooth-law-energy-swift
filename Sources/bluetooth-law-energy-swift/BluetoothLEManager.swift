@@ -36,7 +36,8 @@ public actor BluetoothLEManager: NSObject, ObservableObject, IBluetoothLEManager
     private let centralManager: CBCentralManager
     private let delegateHandler: Delegate
     private var cancellables: Set<AnyCancellable> = []
-    public let queue = DispatchQueue(label: "BluetoothLEManager-CBCentralManager-Queue", attributes: .concurrent)
+    private let retry = RetryService(strategy: .exponential(retry: 3, multiplier: 2, duration: .seconds(3), timeout: .seconds(12)))
+    private let queue = DispatchQueue(label: "BluetoothLEManager-CBCentralManager-Queue", attributes: .concurrent)
     
     private let cachedServices = CachedServices()
     
@@ -76,9 +77,7 @@ public actor BluetoothLEManager: NSObject, ObservableObject, IBluetoothLEManager
             centralManager.cancelPeripheralConnection(peripheral)
         }
         
-        let retry = RetryService(strategy: .exponential(retry: 3, multiplier: 2, duration: .seconds(3), timeout: .seconds(12)))
-        
-        if cache, let services = await cachedServices.getData(key: peripheral.getId) {
+        if cache, let services = await cachedServices.fetch(for: peripheral) {
             return services
         }
         
@@ -89,7 +88,7 @@ public actor BluetoothLEManager: NSObject, ObservableObject, IBluetoothLEManager
             
             try? await Task.sleep(nanoseconds: delay)
             
-            if cache, let services = await cachedServices.getData(key: peripheral.getId) {
+            if cache, let services = await cachedServices.fetch(for: peripheral) {
                 return services
             }
         }
