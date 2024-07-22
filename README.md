@@ -26,7 +26,7 @@ For an example of using `BluetoothLEManager` in a SwiftUI application, please fo
 
 ## Typical Workflow for Discovering Characteristics on a Peripheral
 
-![macOS 11](https://github.com/The-Igor/bluetooth-law-energy-swift/blob/main/img/ble_flow.png) 
+![macOS 11](https://github.com/The-Igor/bluetooth-law-energy-swift/blob/main/img/ble_flow.jpeg) 
  
 ## Bluetooth LE Manager Implementation Specifics
 
