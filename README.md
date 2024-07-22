@@ -88,7 +88,7 @@ The `IBluetoothLEManager` protocol defines the essential functionalities for man
 
 |  iOS | macOS | 
 |------|-------|
-|<img src="https://github.com/The-Igor/bluetooth-law-energy-swift/blob/main/img/ble_manager.jpeg" alt="iOS" style="height: 540px;"/>|
+|<img src="https://github.com/The-Igor/bluetooth-law-energy-swift/blob/main/img/ble_manager.jpeg" alt="iOS" style="height: 540px;"/> |
 <img src="https://github.com/The-Igor/bluetooth-law-energy-swift/blob/main/img/ble_discover.gif" alt="macOS" style="height: 540px;"/>|
 
 ## License
