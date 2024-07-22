@@ -49,12 +49,16 @@ public actor BluetoothLEManager: NSObject, ObservableObject, IBluetoothLEManager
         Task {
             await setupSubscriptions() // Subscriptions for UI indicators So we can afford this init async
         }
+        #if DEBUG
         print("BluetoothManager initialized on \(Date())")
+        #endif
     }
-    
+
     /// Deinitializes the BluetoothLEManager.
     deinit {
+        #if DEBUG
         print("BluetoothManager deinitialized")
+        #endif
     }
     
     // MARK: - API
