@@ -2,7 +2,7 @@
 //  Errors.swift
 //
 //
-//  Created by Igor  on 15.07.24.
+//  Created by Igor on 15.07.24.
 //
 
 import CoreBluetooth
@@ -13,6 +13,9 @@ public extension BluetoothLEManager {
         
         /// Error encountered while discovering services.
         case discoveringServices(String, Error?)
+        
+        /// Error encountered while discovering characteristics.
+        case discoveringCharacteristics(String, Error?)
         
         /// Error encountered while connecting.
         case connection(CBPeripheral, Error?)
@@ -42,6 +45,12 @@ public extension BluetoothLEManager {
                     return NSLocalizedString("Error discovering services for \(message): \(error.localizedDescription)", comment: "Discovering Services Error")
                 } else {
                     return NSLocalizedString("Error discovering services for \(message)", comment: "Discovering Services Error")
+                }
+            case .discoveringCharacteristics(let message, let error):
+                if let error = error {
+                    return NSLocalizedString("Error discovering characteristics for \(message): \(error.localizedDescription)", comment: "Discovering Characteristics Error")
+                } else {
+                    return NSLocalizedString("Error discovering characteristics for \(message)", comment: "Discovering Characteristics Error")
                 }
             case .connection(let peripheral, let error):
                 return NSLocalizedString("Error connecting to \(peripheral.name ?? "unknown peripheral"): \(error?.localizedDescription ?? "unknown error")", comment: "Connection Error")

@@ -24,7 +24,9 @@ For an example of using `BluetoothLEManager` in a SwiftUI application, please fo
 | **Scanning of Available Devices** | Scan for and discover available Bluetooth devices in the vicinity. |
 | **Fetching Services for Discovered Devices Asynchronously** | Fetch and manage services for discovered Bluetooth devices using asynchronous methods, ensuring smooth and non-blocking operations. |
 
- <img src="https://github.com/The-Igor/bluetooth-law-energy-swift/blob/main/img/ble_manager.jpeg" alt="macOS 11" style="height: 780px;"> 
+## Typical Workflow for Discovering Characteristics on a Peripheral
+
+![macOS 11](https://github.com/The-Igor/bluetooth-law-energy-swift/blob/main/img/ble_flow.png) 
  
 ## Bluetooth LE Manager Implementation Specifics
 
@@ -80,7 +82,8 @@ The `BLEState` struct provides information about the current state of Bluetooth 
 
 The `IBluetoothLEManager` protocol defines the essential functionalities for managing Bluetooth Low Energy (BLE) operations. It includes properties and methods for monitoring the state of Bluetooth, discovering peripherals, and fetching services for a specific peripheral. This protocol is intended to be implemented by classes or structures that handle Bluetooth communication in a macOS, iOS, tvOS, or watchOS environment.
 
-![macOS 11](https://github.com/The-Igor/bluetooth-law-energy-swift/blob/main/img/ble_discover.gif) 
+
+![macOS 11](https://github.com/The-Igor/bluetooth-law-energy-swift/blob/main/img/ble_manager.gif) 
 
 ## License
 
