@@ -47,7 +47,7 @@ extension BluetoothLEManager {
         /// Prints debug message on deinitialization to help with tracking lifecycle issues.
         deinit {
             #if DEBUG
-            print("Stream deinitialized")
+            print("Stream factory deinitialized")
             #endif
         }
         
