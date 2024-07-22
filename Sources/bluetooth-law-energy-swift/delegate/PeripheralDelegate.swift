@@ -58,5 +58,9 @@ extension BluetoothLEManager {
         public func peripheral(_ peripheral: CBPeripheral, didModifyServices invalidatedServices: [CBService]) {
 
         }
+        
+        public func peripheral(_ peripheral: CBPeripheral, didDiscoverCharacteristicsFor service: CBService, error: (any Error)?) {
+            
+        }
     }
 }

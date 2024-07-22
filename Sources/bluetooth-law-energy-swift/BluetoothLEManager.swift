@@ -65,17 +65,21 @@ public actor BluetoothLEManager: NSObject, ObservableObject, IBluetoothLEManager
         return stream.peripheralsStream()
     }
     
-    /// Fetches services for a given peripheral, with optional caching.
-    ///  Apple’s documentation specifies that all Core Bluetooth interactions should be performed on the main thread to maintain thread safety and proper synchronization of Bluetooth events. This includes interactions with CBCentralManager, such as connecting and disconnecting peripherals.
+    /// Fetches services for a given peripheral, with optional caching and optional disconnection.
+    /// Apple’s documentation specifies that all Core Bluetooth interactions should be performed on the main thread to maintain thread safety and proper synchronization of Bluetooth events.
+    /// This includes interactions with CBCentralManager, such as connecting and disconnecting peripherals.
     /// - Parameters:
     ///   - peripheral: The `CBPeripheral` instance to fetch services for.
     ///   - cache: A Boolean value indicating whether to use cached data.
+    ///   - disconnect: A Boolean value indicating whether to disconnect from the peripheral after fetching services.
     /// - Returns: An array of `CBService` instances.
     /// - Throws: An error if the services could not be fetched.
     @MainActor
-    public func fetchServices(for peripheral: CBPeripheral, cache: Bool = true) async throws -> [CBService] {
+    public func discoverServices(for peripheral: CBPeripheral, cache: Bool = true, disconnect: Bool = false) async throws -> [CBService] {
         defer {
-            centralManager.cancelPeripheralConnection(peripheral)
+            if disconnect{
+                centralManager.cancelPeripheralConnection(peripheral)
+            }
         }
         
         if cache, let services = await cachedServices.fetch(for: peripheral) {
