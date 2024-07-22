@@ -76,8 +76,8 @@ For an example of using `BluetoothLEManager` in a SwiftUI application, please fo
 | `bleState`               | Property   | A subject that publishes the BLE state changes.                                                      | `CurrentValueSubject<BLEState, Never>`           |
 | `peripheralsStream`      | Property   | Provides an asynchronous stream of discovered Bluetooth peripherals.                                  | `AsyncStream<[CBPeripheral]>`                    |
 | `fetchServices`          | Method     | Fetches services for a given peripheral, with optional caching.                                       | `async throws -> [CBService]`                    |
-| `connect`                | Method     | Connects to a specific peripheral. Should be used on the same instance of `BluetoothLEManager` to avoid errors. | `@MainActor async throws -> Void`                |
-| `disconnect`             | Method     | Disconnects from a specific peripheral. Should be used on the same instance of `BluetoothLEManager` to avoid errors. | `@MainActor async throws -> Void`                |
+| `connect`                | Method     | Connects to a specific peripheral. 🟡 Should be used on the same instance of `BluetoothLEManager` to avoid errors. | `@MainActor async throws -> Void`                |
+| `disconnect`             | Method     | Disconnects from a specific peripheral. 🟡 Should be used on the same instance of `BluetoothLEManager` to avoid errors. | `@MainActor async throws -> Void`                |
 
 
 ### BLEState
