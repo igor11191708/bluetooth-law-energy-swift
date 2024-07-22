@@ -32,7 +32,7 @@ public actor BluetoothLEManager: NSObject, ObservableObject, IBluetoothLEManager
     /// Internal types and instances
     private typealias Delegate = BluetoothDelegate
     private let state = BluetoothLEManager.State()
-    private let stream = Stream()
+    private let stream = StreamFactory()
     private let centralManager: CBCentralManager
     private let delegateHandler: Delegate
     private var cancellables: Set<AnyCancellable> = []
@@ -66,7 +66,9 @@ public actor BluetoothLEManager: NSObject, ObservableObject, IBluetoothLEManager
     /// Provides a stream of discovered peripherals.
     @MainActor
     public var peripheralsStream: AsyncStream<[CBPeripheral]> {
-        return stream.peripheralsStream()
+        get async{
+            await stream.peripheralsStream()
+        }
     }
     
     /// Fetches services for a given peripheral, with optional caching and optional disconnection.
@@ -211,8 +213,8 @@ public actor BluetoothLEManager: NSObject, ObservableObject, IBluetoothLEManager
     /// Handles changes in discovered peripherals.
     ///
     /// - Parameter peripherals: An array of discovered `CBPeripheral` instances.
-    private func handlePeripheralChange(_ peripherals: [CBPeripheral]) {
-        stream.updatePeripherals(peripherals)
+    private func handlePeripheralChange(_ peripherals: [CBPeripheral]) async {
+       await stream.updatePeripherals(peripherals)
     }
     
     /// Checks if Bluetooth is ready (powered on and authorized).

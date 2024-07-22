@@ -19,7 +19,7 @@ public protocol IBluetoothLEManager {
 
     /// Provides an asynchronous stream of discovered Bluetooth peripherals.
     @MainActor
-    var peripheralsStream: AsyncStream<[CBPeripheral]> { get }
+    var peripheralsStream: AsyncStream<[CBPeripheral]>  { get async }
 
     /// Fetches services for a given peripheral, with optional caching and optional disconnection.
     /// Apple’s documentation specifies that all Core Bluetooth interactions should be performed on the main thread to maintain thread safety and proper synchronization of Bluetooth events.
