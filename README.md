@@ -11,35 +11,18 @@ For an example of using `BluetoothLEManager` in a SwiftUI application, please fo
 
 ## Main Features 
 
-- **Bluetooth Authorization Management**
-  - Manage and request Bluetooth authorization permissions from the user.
-
-- **Bluetooth Power Management**
-  - Monitor and handle Bluetooth power state changes to ensure functionality.
-
-- **State Publishing**
-  - Publish the current state of the Bluetooth manager, including authorization and power status.
-
-- **User Interface Integration**
-  - Integrate seamlessly with user interfaces to provide real-time updates on Bluetooth status and devices.
-
-- **Peripheral Management**
-  - Manage discovered Bluetooth peripherals, including connection and disconnection.
-
-- **Multi-platform**
-  - Support for multiple platforms, ensuring compatibility across different devices and operating systems.
-
-- **Utilizing Modern Concurrency in Swift with Async Stream**
-  - Employ modern concurrency techniques in Swift, such as AsyncStream, for efficient and responsive Bluetooth operations.
-
-- **Asynchronous Stream Sharing**
-  - Share asynchronous streams between different views, allowing multiple UI components to access and display the list of available Bluetooth devices simultaneously.
-
-- **Scanning of Available Devices**
-  - Scan for and discover available Bluetooth devices in the vicinity.
-
-- **Fetching Services for Discovered Devices Asynchronously**
-  - Fetch and manage services for discovered Bluetooth devices using asynchronous methods, ensuring smooth and non-blocking operations.
+| Feature | Description |
+|---------|-------------|
+| **Bluetooth Authorization Management** | Manage and request Bluetooth authorization permissions from the user. |
+| **Bluetooth Power Management** | Monitor and handle Bluetooth power state changes to ensure functionality. |
+| **State Publishing** | Publish the current state of the Bluetooth manager, including authorization and power status. |
+| **User Interface Integration** | Integrate seamlessly with user interfaces to provide real-time updates on Bluetooth status and devices. |
+| **Peripheral Management** | Manage discovered Bluetooth peripherals, including connection and disconnection. |
+| **Multi-platform** | Support for multiple platforms, ensuring compatibility across different devices and operating systems. |
+| **Utilizing Modern Concurrency in Swift with Async Stream** | Employ modern concurrency techniques in Swift, such as AsyncStream, for efficient and responsive Bluetooth operations. |
+| **Asynchronous Stream Sharing** | Share asynchronous streams between different views, allowing multiple UI components to access and display the list of available Bluetooth devices simultaneously. |
+| **Scanning of Available Devices** | Scan for and discover available Bluetooth devices in the vicinity. |
+| **Fetching Services for Discovered Devices Asynchronously** | Fetch and manage services for discovered Bluetooth devices using asynchronous methods, ensuring smooth and non-blocking operations. |
 
  <img src="https://github.com/The-Igor/bluetooth-law-energy-swift/blob/main/img/ble_manager.jpeg" alt="macOS 11" style="height: 780px;"> 
  
