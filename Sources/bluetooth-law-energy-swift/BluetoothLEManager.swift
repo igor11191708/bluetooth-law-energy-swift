@@ -172,7 +172,7 @@ public actor BluetoothLEManager: NSObject, ObservableObject, IBluetoothLEManager
         
         let delegate = PeripheralDelegate()
         peripheral.delegate = delegate
-        let services = try await delegate.fetchServices(for: peripheral)
+        let services = try await delegate.discoverServices(for: peripheral)
         
         if cache {
             await cachedServices.add(key: peripheral.getId, services: services)

@@ -39,7 +39,7 @@ extension BluetoothLEManager {
         /// - Returns: An array of `CBService` representing the services supported by the peripheral
         /// - Throws: An error if service discovery fails
         @MainActor
-        public func fetchServices(for peripheral: CBPeripheral) async throws -> [CBService] {
+        public func discoverServices(for peripheral: CBPeripheral) async throws -> [CBService] {
             return try await withCheckedThrowingContinuation { continuation in
                 Task{
                     let id = peripheral.getId
