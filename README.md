@@ -26,7 +26,7 @@ For an example of using `BluetoothLEManager` in a SwiftUI application, please fo
 
 ## Typical Workflow for Discovering Characteristics on a Peripheral
 
-In case you are curious about the workflow of discovering characteristics and would like to create your own Bluetooth Low Energy kit, the next blocks may be of interest. They show a simple workflow for using CBCentralManager to initialize the manager, discover peripherals, connect to a peripheral, discover services, discover characteristics, and finally disconnect the peripheral and stop scanning. This flowchart provides a clear and concise visualization of the key steps involved in managing Bluetooth Low Energy devices.
+In case you are curious about the workflow of discovering characteristics and would like to create your own Bluetooth Low Energy kit, the following blocks may be of interest. They show a workflow for using CBCentralManager. The flowchart provides a clear and concise visualization of the key steps involved in managing Bluetooth Low Energy devices and gives you a theoretical basis to get started.
 
 ![macOS 11](https://github.com/The-Igor/bluetooth-law-energy-swift/blob/main/img/ble_flow.png)
  
