@@ -79,6 +79,8 @@ For an example of using `BluetoothLEManager` in a SwiftUI application, please fo
 | `connect`                | Method     | Connects to a specific peripheral. 🟡 Should be used on the same instance of `BluetoothLEManager` to avoid errors. | `@MainActor async throws -> Void`                |
 | `disconnect`             | Method     | Disconnects from a specific peripheral. 🟡 Should be used on the same instance of `BluetoothLEManager` to avoid errors. | `@MainActor async throws -> Void`                |
 
+Apple’s documentation specifies that all Core Bluetooth interactions should be performed on the main thread to maintain thread safety and proper synchronization of Bluetooth events. This includes interactions with CBCentralManager, such as connecting and disconnecting peripherals.
+While callbacks (like successful connections or disconnections) can be received on different threads, the initial calls to connect or disconnect must happen on the main thread. This is because the Core Bluetooth framework is not thread-safe, and calling these methods on multiple threads can lead to race conditions, crashes, and unpredictable behavior.
 
 ### BLEState
 

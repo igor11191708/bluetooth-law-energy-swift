@@ -66,6 +66,7 @@ public actor BluetoothLEManager: NSObject, ObservableObject, IBluetoothLEManager
     }
     
     /// Fetches services for a given peripheral, with optional caching.
+    ///  Apple’s documentation specifies that all Core Bluetooth interactions should be performed on the main thread to maintain thread safety and proper synchronization of Bluetooth events. This includes interactions with CBCentralManager, such as connecting and disconnecting peripherals.
     /// - Parameters:
     ///   - peripheral: The `CBPeripheral` instance to fetch services for.
     ///   - cache: A Boolean value indicating whether to use cached data.
