@@ -39,6 +39,18 @@ extension BluetoothLEManager {
                 try await connection.register(to: id, name: name, with: continuation)
         }
         
+        /// Disconnects from a peripheral.
+        /// - Parameters:
+        ///   - id: The UUID of the peripheral to disconnect from.
+        ///   - name: The name of the peripheral to disconnect from.
+        ///   - continuation: A CheckedContinuation to handle the result of the disconnection operation asynchronously.
+        /// - Throws: An error if the disconnection fails.
+        public func disconnect(
+            to id: UUID,
+            name: String,
+            with continuation: CheckedContinuation<Void, Error>) async throws {
+                try await disconnection.register(to: id, name: name, with: continuation)
+        }
         
         /// A publisher for Bluetooth state updates, applying custom operators to handle initial powered-off state and receive on the main thread.
         public var statePublisher: AnyPublisher<CBManagerState, Never> {

@@ -136,7 +136,7 @@ public actor BluetoothLEManager: NSObject, ObservableObject, IBluetoothLEManager
             Task {
                 let id = peripheral.getId
                 let name = peripheral.getName
-                try await delegateHandler.connect(to: id, name: name, with: continuation)
+                try await delegateHandler.disconnect(to: id, name: name, with: continuation)
                 centralManager.cancelPeripheralConnection(peripheral)
             }
         }
@@ -236,7 +236,7 @@ public actor BluetoothLEManager: NSObject, ObservableObject, IBluetoothLEManager
         
         if subscriberCount == 0 {
             stopScanning()
-        } else if subscriberCount > 0 {
+        } else{
             startScanning()
         }
         
