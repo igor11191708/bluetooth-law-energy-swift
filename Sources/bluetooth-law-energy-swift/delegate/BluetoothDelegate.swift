@@ -149,7 +149,7 @@ extension BluetoothLEManager {
                     )
                     return
                 }
-                
+     
                 let e = Errors.disconnection(peripheral, error)
                 await disconnection.handleResult(
                     for: peripheral,
