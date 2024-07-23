@@ -43,13 +43,13 @@ public actor BluetoothLEManager: NSObject, ObservableObject, IBluetoothLEManager
     
     /// Initializes the BluetoothLEManager with a logger.
     /// In Swift 6 and later, calling actor-isolated methods directly from synchronous contexts like initializers, which are not part of the actor’s context, is prohibited to maintain the integrity of the actor’s state.
-    public init(logger: ILogger?) {
+    public init(logger: ILogger?, queue : DispatchQueue? = nil) {
    
         let logger = logger ?? AppleLogger(subsystem: "BluetoothLEManager", category: "Bluetooth")
         self.logger = logger
         stream = StreamFactory(logger: logger)
         delegateHandler = Delegate(logger: logger)
-        centralManager = CBCentralManager(delegate: delegateHandler, queue: nil)
+        centralManager = CBCentralManager(delegate: delegateHandler, queue: queue)
         
         super.init()
         
