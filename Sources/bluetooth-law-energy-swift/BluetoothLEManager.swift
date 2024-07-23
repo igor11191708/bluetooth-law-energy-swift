@@ -53,7 +53,7 @@ public actor BluetoothLEManager: NSObject, ObservableObject, IBluetoothLEManager
         centralManager = CBCentralManager(delegate: delegateHandler, queue: queue)
         super.init()
         Task {
-            await setupSubscriptions() // Subscriptions for UI indicators So we can afford this init async
+            await setupSubscriptions() /// for UI indicators So we can afford this init async
         }
         logger.log("BluetoothManager initialized on \(Date())", level: .debug)
     }
@@ -166,6 +166,7 @@ public actor BluetoothLEManager: NSObject, ObservableObject, IBluetoothLEManager
     /// - Returns: An array of `CBService` objects representing the services of the peripheral.
     ///
     /// - Throws: An error if the connection or service discovery fails.
+    @MainActor
     private func attemptFetchServices(for peripheral: CBPeripheral, cache: Bool) async throws -> [CBService] {
         try await connect(to: peripheral)
         return try await discover(for: peripheral, cache: cache)
@@ -241,9 +242,9 @@ public actor BluetoothLEManager: NSObject, ObservableObject, IBluetoothLEManager
     ///   - state: The current `CBManagerState`.
     ///   - subscriberCount: The number of subscribers.
     /// - Returns: The updated `BLEState`.
-    private func checkForScan(_ state: CBManagerState, _ subscriberCount: Int) -> BLEState {
+    private func checkForScan(_ state: CBManagerState, _ subscriberCount: Int) async -> BLEState {
         guard checkIfBluetoothReady else {
-            stopScanning()
+            await stopScanning()
             return .init(
                 isAuthorized: self.isAuthorized,
                 isPowered: self.isPowered,
@@ -252,9 +253,9 @@ public actor BluetoothLEManager: NSObject, ObservableObject, IBluetoothLEManager
         }
         
         if subscriberCount == 0 {
-            stopScanning()
+            await stopScanning()
         } else{
-            startScanning()
+            await startScanning()
         }
         
         isScanning = subscriberCount != 0
@@ -266,11 +267,13 @@ public actor BluetoothLEManager: NSObject, ObservableObject, IBluetoothLEManager
     }
     
     /// Starts scanning for peripherals.
+    @MainActor
     private func startScanning() {
         centralManager.scanForPeripherals(withServices: nil, options: nil)
     }
     
     /// Stops scanning for peripherals.
+    @MainActor
     private func stopScanning() {
         centralManager.stopScan()
     }

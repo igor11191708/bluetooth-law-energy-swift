@@ -43,7 +43,7 @@ extension BluetoothLEManager {
         /// This ensures that the factory is aware of the number of active observers and can manage resources accordingly.
         init(logger: ILogger) {
             self.logger = logger
-            self.service = StreamRegistration()
+            service = StreamRegistration()
             Task {
                 await self.service.subscriberCountPublisher
                     .sink { [weak self] count in
@@ -71,8 +71,9 @@ extension BluetoothLEManager {
         /// Updates the list of discovered peripherals and notifies all registered subscribers.
         /// This method is asynchronous and ensures that notifications are sent in response to changes in the peripheral list.
         /// - Parameter peripherals: An array of `CBPeripheral` objects representing the discovered peripherals.
+        @MainActor
         public func updatePeripherals(_ peripherals: [CBPeripheral]) async {
-            await self.service.notifySubscribers(peripherals)
+            await service.notifySubscribers(peripherals)
         }
     }
 }

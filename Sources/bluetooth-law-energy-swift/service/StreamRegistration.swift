@@ -21,6 +21,7 @@ extension BluetoothLEManager {
         private let subscriberCountSubject = PassthroughSubject<Int, Never>()
         
         /// List to store discovered peripherals.
+        @MainActor
         private var discoveredPeripherals: [CBPeripheral] = []
         
         
@@ -49,9 +50,9 @@ extension BluetoothLEManager {
         /// - Parameters:
         ///   - id: The UUID of the subscriber to register.
         ///   - continuation: The `PeripheralsContinuation` to handle the discovered peripherals.
-        public func register(with id: UUID, and continuation: PeripheralsContinuation) {
+        public func register(with id: UUID, and continuation: PeripheralsContinuation) async {
             subscribers[id] = continuation
-            continuation.yield(discoveredPeripherals)
+            continuation.yield(await discoveredPeripherals)
             subscriberCountSubject.send(count)
         }
         
@@ -66,9 +67,10 @@ extension BluetoothLEManager {
         /// Notifies all subscribers with the latest list of discovered peripherals.
         ///
         /// - Parameter peripherals: The updated list of discovered `CBPeripheral` instances.
-        public func notifySubscribers(_ peripherals: [CBPeripheral]) {
-            discoveredPeripherals = peripherals
-            for continuation in subscribers.values {
+        @MainActor
+        public func notifySubscribers(_ peripherals: [CBPeripheral]) async {
+            await discoveredPeripherals = peripherals
+            for continuation in await subscribers.values {
                 continuation.yield(peripherals)
             }
         }
