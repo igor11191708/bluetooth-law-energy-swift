@@ -22,7 +22,7 @@ public actor BluetoothLEManager: NSObject, ObservableObject, IBluetoothLEManager
     var isPowered = false
     var isScanning = false
 
-    /// Typealiases for publishers
+    /// Type aliases for publishers
     private typealias StatePublisher = AnyPublisher<CBManagerState, Never>
     private typealias PeripheralPublisher = AnyPublisher<[CBPeripheral], Never>
     
