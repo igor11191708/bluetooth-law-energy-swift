@@ -38,7 +38,7 @@ public actor BluetoothLEManager: NSObject, ObservableObject, IBluetoothLEManager
     private let delegateHandler: Delegate
     private var cancellables: Set<AnyCancellable> = []
     private let retry = RetryService(strategy: .exponential(retry: 3, multiplier: 2, duration: .seconds(3), timeout: .seconds(12)))
-    private let queue = DispatchQueue(label: "BluetoothLEManager-CBCentralManager-Queue")
+    private let queue = DispatchQueue(label: "BluetoothLEManager-CBCentralManager-Queue", attributes: .concurrent)
     
     private let cachedServices = CacheServices()
     
@@ -187,7 +187,9 @@ public actor BluetoothLEManager: NSObject, ObservableObject, IBluetoothLEManager
         
         let delegate = PeripheralDelegate(logger: logger)
         peripheral.delegate = delegate
-        let services = try await delegate.discoverServices(for: peripheral)
+        try await delegate.discoverServices(for: peripheral)
+        
+        let services = peripheral.services ?? []
         
         if cache {
             await cachedServices.add(key: peripheral.getId, services: services)

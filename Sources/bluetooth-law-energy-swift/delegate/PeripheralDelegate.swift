@@ -13,7 +13,7 @@ extension BluetoothLEManager {
     // Class to handle CB Peripheral Delegate
     public class PeripheralDelegate: NSObject, CBPeripheralDelegate {
        
-        private let service: ServiceRegistration<[CBService]>
+        private let service: ServiceRegistration<Void>
         
         init(logger: ILogger) {
             service = .init(type: .discovering, logger: logger)
@@ -27,12 +27,12 @@ extension BluetoothLEManager {
         public func peripheral(_ peripheral: CBPeripheral, didDiscoverServices error: Error?) {
                
             Task{
-            if let error = error {
-                await service.handleResult(for: peripheral, result: .failure(BluetoothLEManager.Errors.discoveringServices(peripheral.getName, error)))
-                
-            } else if let services = peripheral.services {
-                    await service.handleResult(for: peripheral, result: .success(services))
-                }
+                if let error = error {
+                    await service.handleResult(for: peripheral, result: .failure(BluetoothLEManager.Errors.discoveringServices(peripheral.getName, error)))
+                    
+                } else{
+                        await service.handleResult(for: peripheral, result: .success(Void()))
+                    }
             }
         }
 
@@ -42,7 +42,7 @@ extension BluetoothLEManager {
         /// - Returns: An array of `CBService` representing the services supported by the peripheral
         /// - Throws: An error if service discovery fails
         @MainActor
-        public func discoverServices(for peripheral: CBPeripheral) async throws -> [CBService] {
+        public func discoverServices(for peripheral: CBPeripheral) async throws {
             return try await withCheckedThrowingContinuation { continuation in
                 Task{
                     let id = peripheral.getId
