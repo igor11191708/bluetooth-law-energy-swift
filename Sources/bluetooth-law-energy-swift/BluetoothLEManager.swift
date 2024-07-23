@@ -9,12 +9,12 @@ import Combine
 import CoreBluetooth
 import retry_policy_service
 
-
 @available(macOS 12, iOS 15, tvOS 15.0, watchOS 8.0, *)
-public actor BluetoothLEManager: NSObject, ObservableObject, IBluetoothLEManager {
+@MainActor
+public final class BluetoothLEManager: NSObject, ObservableObject, IBluetoothLEManager {
     
     /// A subject that publishes the BLE state changes to the main actor.
-    @MainActor
+
     public let bleState: CurrentValueSubject<BLEState, Never> = .init(.init())
     
     /// Internal state variables
@@ -53,10 +53,8 @@ public actor BluetoothLEManager: NSObject, ObservableObject, IBluetoothLEManager
         centralManager.delegate = delegateHandler
         
         super.init()
-        
-        Task{
-           await setupSubscriptions()
-        }
+      
+        setupSubscriptions()
         
         logger.log("BluetoothManager initialized on \(Date())", level: .debug)
     }
@@ -121,7 +119,6 @@ public actor BluetoothLEManager: NSObject, ObservableObject, IBluetoothLEManager
     /// Always use the same CBCentralManager instance to manage connections and disconnections for a peripheral to avoid errors and ensure correct behavior
     /// - Parameter peripheral: The `CBPeripheral` instance to connect to.
     /// - Throws: `BluetoothLEManager.Errors` if the connection fails.
-    @MainActor
     public func connect(to peripheral: CBPeripheral) async throws {
         guard peripheral.isNotConnected else {
             throw Errors.connected(peripheral)
@@ -143,7 +140,6 @@ public actor BluetoothLEManager: NSObject, ObservableObject, IBluetoothLEManager
     /// Always use the same CBCentralManager instance to manage connections and disconnections for a peripheral to avoid errors and ensure correct behavior
     /// - Parameter peripheral: The `CBPeripheral` instance to connect to.
     /// - Throws: `BluetoothLEManager.Errors` if the connection fails.
-    @MainActor
     public func disconnect(from peripheral: CBPeripheral) async throws {
         guard peripheral.isConnected else {
             throw Errors.notConnected(peripheral.getName)
@@ -170,7 +166,6 @@ public actor BluetoothLEManager: NSObject, ObservableObject, IBluetoothLEManager
     /// - Returns: An array of `CBService` objects representing the services of the peripheral.
     ///
     /// - Throws: An error if the connection or service discovery fails.
-    @MainActor
     private func attemptFetchServices(for peripheral: CBPeripheral, cache: Bool) async throws -> [CBService] {
         try await connect(to: peripheral)
         return try await discover(for: peripheral, cache: cache)
@@ -183,7 +178,6 @@ public actor BluetoothLEManager: NSObject, ObservableObject, IBluetoothLEManager
     ///   - cache: A Boolean value indicating whether to cache the services.
     /// - Returns: An array of `CBService` instances.
     /// - Throws: An error if the services could not be discovered.
-    @MainActor
     private func discover(for peripheral: CBPeripheral, cache: Bool) async throws -> [CBService] {
         defer { peripheral.delegate = nil }
         
@@ -247,12 +241,12 @@ public actor BluetoothLEManager: NSObject, ObservableObject, IBluetoothLEManager
     /// - Returns: The updated `BLEState`.
     private func checkForScan(_ state: CBManagerState, _ subscriberCount: Int) async -> BLEState {
         if !checkIfBluetoothReady {
-            await stopScanning()
+            stopScanning()
         } else {
             if subscriberCount == 0 {
-                await stopScanning()
+                stopScanning()
             } else {
-                await startScanning()
+                startScanning()
             }
             isScanning = subscriberCount != 0
         }
