@@ -45,6 +45,20 @@ extension BluetoothLEManager {
             }
         }
         
+        /// Initializes the BluetoothLEManager.
+        private let logger: ILogger
+        
+        init(logger: ILogger) {
+            self.logger = logger
+        }
+        
+        deinit{
+            subscribers.forEach{ (key, value) in
+                value.finish()
+            }
+            discoveredPeripherals = []
+        }
+        
         /// Registers a new subscriber and immediately provides current peripherals.
         ///
         /// - Parameters:

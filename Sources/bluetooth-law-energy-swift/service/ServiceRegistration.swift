@@ -31,6 +31,14 @@ extension BluetoothLEManager {
             self.logger = logger
         }
         
+        deinit{
+            register.forEach{ (key, value) in
+                value.resume(throwing: Errors.timeout)
+            }
+            
+            register = [:]
+        }
+        
         // MARK: - API
         
         /// Checks if a continuation for a given UUID is not active.

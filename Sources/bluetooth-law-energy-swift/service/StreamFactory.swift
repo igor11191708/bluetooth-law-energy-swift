@@ -43,7 +43,7 @@ extension BluetoothLEManager {
         /// This ensures that the factory is aware of the number of active observers and can manage resources accordingly.
         init(logger: ILogger) {
             self.logger = logger
-            service = StreamRegistration()
+            service = StreamRegistration(logger: logger)
             Task {
                 await self.service.subscriberCountPublisher
                     .sink { [weak self] count in
