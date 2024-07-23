@@ -39,21 +39,23 @@ public actor BluetoothLEManager: NSObject, ObservableObject, IBluetoothLEManager
     private let delegateHandler: Delegate
     private var cancellables: Set<AnyCancellable> = []
     private let retry = RetryService(strategy: .exponential(retry: 3, multiplier: 2, duration: .seconds(3), timeout: .seconds(12)))
-    private let queue = DispatchQueue(label: "BluetoothLEManager-CBCentralManager-Queue", attributes: .concurrent)
     private let logger: ILogger
     
     /// Initializes the BluetoothLEManager with a logger.
+    /// In Swift 6 and later, calling actor-isolated methods directly from synchronous contexts like initializers, which are not part of the actor’s context, is prohibited to maintain the integrity of the actor’s state.
     public init(logger: ILogger?) {
    
         let logger = logger ?? AppleLogger(subsystem: "BluetoothLEManager", category: "Bluetooth")
         self.logger = logger
         stream = StreamFactory(logger: logger)
         delegateHandler = Delegate(logger: logger)
-        centralManager = CBCentralManager(delegate: delegateHandler, queue: queue)
+        centralManager = CBCentralManager(delegate: delegateHandler, queue: nil)
         
         super.init()
-      
-        setupSubscriptions()
+        
+        Task { [weak self] in
+            await self?.setupSubscriptions()
+        }
         
         logger.log("BluetoothManager initialized on \(Date())", level: .debug)
     }
@@ -90,12 +92,11 @@ public actor BluetoothLEManager: NSObject, ObservableObject, IBluetoothLEManager
             }
         }
         
-        // Check the cache before attempting to fetch services
+         ///Check the cache before attempting to fetch services
         if cache, let services = cachedServices.fetch(for: peripheral) {
             return services
         }
 
-        // Retry logic with delay
         for delay in retry {
             do {
                 return try await attemptFetchServices(for: peripheral, cache: cache)
@@ -108,7 +109,7 @@ public actor BluetoothLEManager: NSObject, ObservableObject, IBluetoothLEManager
             }
         }
         
-        // Final attempt to fetch services if retries fail
+        /// Final attempt to fetch services if retries fail
         return try await attemptFetchServices(for: peripheral, cache: cache)
     }
     
