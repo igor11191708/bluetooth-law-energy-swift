@@ -94,16 +94,16 @@ public actor BluetoothLEManager: NSObject, ObservableObject, IBluetoothLEManager
             }
         }
         
+        // Check the cache before attempting to fetch services
         if cache, let services = await cachedServices.fetch(for: peripheral) {
             return services
         }
-        
-        for (_, delay) in retry.enumerated() {
+
+        // Retry logic with delay
+        for delay in retry {
             do {
                 return try await attemptFetchServices(for: peripheral, cache: cache)
-            } catch {
-                // Handle retry logic by continuing the loop
-            }
+            } catch { }
             
             try? await Task.sleep(nanoseconds: delay)
             
@@ -112,7 +112,7 @@ public actor BluetoothLEManager: NSObject, ObservableObject, IBluetoothLEManager
             }
         }
         
-        // Final attempt to connect and discover services if previous attempts fail
+        // Final attempt to fetch services if retries fail
         return try await attemptFetchServices(for: peripheral, cache: cache)
     }
     
@@ -247,22 +247,17 @@ public actor BluetoothLEManager: NSObject, ObservableObject, IBluetoothLEManager
     ///   - subscriberCount: The number of subscribers.
     /// - Returns: The updated `BLEState`.
     private func checkForScan(_ state: CBManagerState, _ subscriberCount: Int) async -> BLEState {
-        guard checkIfBluetoothReady else {
+        if !checkIfBluetoothReady {
             await stopScanning()
-            return .init(
-                isAuthorized: self.isAuthorized,
-                isPowered: self.isPowered,
-                isScanning: self.isScanning
-            )
+        } else {
+            if subscriberCount == 0 {
+                await stopScanning()
+            } else {
+                await startScanning()
+            }
+            isScanning = subscriberCount != 0
         }
-        
-        if subscriberCount == 0 {
-            await stopScanning()
-        } else{
-            await startScanning()
-        }
-        
-        isScanning = subscriberCount != 0
+
         return .init(
             isAuthorized: self.isAuthorized,
             isPowered: self.isPowered,
