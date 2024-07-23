@@ -38,7 +38,7 @@ public actor BluetoothLEManager: NSObject, ObservableObject, IBluetoothLEManager
     private let delegateHandler: Delegate
     private var cancellables: Set<AnyCancellable> = []
     private let retry = RetryService(strategy: .exponential(retry: 3, multiplier: 2, duration: .seconds(3), timeout: .seconds(12)))
-    private let queue = DispatchQueue(label: "BluetoothLEManager-CBCentralManager-Queue", attributes: .concurrent)
+    private let queue = DispatchQueue(label: "BluetoothLEManager-CBCentralManager-Queue")
     
     private let cachedServices = CacheServices()
     

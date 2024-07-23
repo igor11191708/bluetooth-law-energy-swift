@@ -22,10 +22,8 @@ extension BluetoothLEManager {
         
         private let disconnection: ServiceRegistration<Void>
         
-        /// Initializes the BluetoothLEManager.
         private let logger: ILogger
         
-        /// Initializes the BluetoothLEManager with a logger.
         public init(logger: ILogger) {
             self.logger = logger
             connection = .init(type: .connection, logger: logger)

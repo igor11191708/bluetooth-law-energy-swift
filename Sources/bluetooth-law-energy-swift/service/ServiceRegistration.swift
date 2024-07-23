@@ -26,8 +26,6 @@ extension BluetoothLEManager {
         
         // MARK: - Initializer
         
-        /// Initializes the RegistrationService with a given service type.
-        /// - Parameter type: The type of the service.
         init(type: ServiceType, logger: ILogger) {
             self.type = type
             self.logger = logger
