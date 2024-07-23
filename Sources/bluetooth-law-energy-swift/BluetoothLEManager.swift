@@ -31,9 +31,7 @@ public actor BluetoothLEManager: NSObject, ObservableObject, IBluetoothLEManager
     private var getPeripheralPublisher: PeripheralPublisher { delegateHandler.peripheralPublisher }
     
     /// Internal types and instances
-    @MainActor
-    private let centralManager: CBCentralManager
-    @MainActor
+    private let centralManager: CBCentralManager = CBCentralManager(delegate: nil, queue: nil)
     private let cachedServices = CacheServices()
     
     private typealias Delegate = BluetoothDelegate
@@ -47,15 +45,19 @@ public actor BluetoothLEManager: NSObject, ObservableObject, IBluetoothLEManager
     
     /// Initializes the BluetoothLEManager with a logger.
     public init(logger: ILogger?) {
+        
         let logger = logger ?? AppleLogger(subsystem: "BluetoothLEManager", category: "Bluetooth")
         self.logger = logger
         stream = StreamFactory(logger: logger)
         delegateHandler = Delegate(logger: logger)
-        centralManager = CBCentralManager(delegate: delegateHandler, queue: queue)
+        centralManager.delegate = delegateHandler
+        
         super.init()
-        Task {
-            await setupSubscriptions() /// for UI indicators So we can afford this init async
+        
+        Task{
+           await setupSubscriptions()
         }
+        
         logger.log("BluetoothManager initialized on \(Date())", level: .debug)
     }
 
@@ -67,7 +69,6 @@ public actor BluetoothLEManager: NSObject, ObservableObject, IBluetoothLEManager
     // MARK: - API
     
     /// Provides a stream of discovered peripherals.
-    @MainActor
     public var peripheralsStream: AsyncStream<[CBPeripheral]> {
         get async{
             await stream.peripheralsStream()
@@ -95,7 +96,7 @@ public actor BluetoothLEManager: NSObject, ObservableObject, IBluetoothLEManager
         }
         
         // Check the cache before attempting to fetch services
-        if cache, let services = await cachedServices.fetch(for: peripheral) {
+        if cache, let services = cachedServices.fetch(for: peripheral) {
             return services
         }
 
@@ -107,7 +108,7 @@ public actor BluetoothLEManager: NSObject, ObservableObject, IBluetoothLEManager
             
             try? await Task.sleep(nanoseconds: delay)
             
-            if cache, let services = await cachedServices.fetch(for: peripheral) {
+            if cache, let services = cachedServices.fetch(for: peripheral) {
                 return services
             }
         }
@@ -195,7 +196,7 @@ public actor BluetoothLEManager: NSObject, ObservableObject, IBluetoothLEManager
         let services = peripheral.services ?? []
         
         if cache {
-            await cachedServices.add(key: peripheral.getId, services: services)
+          cachedServices.add(key: peripheral.getId, services: services)
         }
         
         return services

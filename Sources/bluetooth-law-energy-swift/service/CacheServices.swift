@@ -17,7 +17,6 @@ extension BluetoothLEManager {
         @MainActor
         private var data: [UUID: [CBService]] = [:]
         
-        
         deinit{
             data = [:]
         }

@@ -83,7 +83,7 @@ extension BluetoothLEManager {
         /// - Parameter peripherals: The updated list of discovered `CBPeripheral` instances.
         @MainActor
         public func notifySubscribers(_ peripherals: [CBPeripheral]) async {
-            await discoveredPeripherals = peripherals
+            discoveredPeripherals = peripherals
             for continuation in await subscribers.values {
                 continuation.yield(peripherals)
             }

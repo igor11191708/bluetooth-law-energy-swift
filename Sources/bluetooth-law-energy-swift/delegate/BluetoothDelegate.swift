@@ -10,7 +10,7 @@ import CoreBluetooth
 
 extension BluetoothLEManager {
 
-    class BluetoothDelegate: NSObject, CBCentralManagerDelegate {
+    final class BluetoothDelegate: NSObject, CBCentralManagerDelegate {
         
         /// A subject to publish Bluetooth state updates.
         private let stateSubject = PassthroughSubject<CBManagerState, Never>()
