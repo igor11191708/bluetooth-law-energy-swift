@@ -18,10 +18,19 @@ extension BluetoothLEManager {
         /// A subject to publish discovered Bluetooth peripherals.
         private let peripheralSubject = CurrentValueSubject<[CBPeripheral], Never>([])
                 
-        private let connection: ServiceRegistration<Void> = .init(type: .connection)
+        private let connection: ServiceRegistration<Void>
         
-        private let disconnection: ServiceRegistration<Void> = .init(type: .disconnection)
+        private let disconnection: ServiceRegistration<Void>
         
+        /// Initializes the BluetoothLEManager.
+        private let logger: ILogger
+        
+        /// Initializes the BluetoothLEManager with a logger.
+        public init(logger: ILogger) {
+            self.logger = logger
+            connection = .init(type: .connection, logger: logger)
+            disconnection = .init(type: .disconnection, logger: logger)
+        }
         // MARK: - API
         
         /// Connects to a given peripheral.

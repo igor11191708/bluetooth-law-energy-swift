@@ -34,11 +34,15 @@ extension BluetoothLEManager {
         /// Ensures that subscriptions are cancelled when they are no longer needed.
         private var cancellables = Set<AnyCancellable>()
         
+        /// Initializes the BluetoothLEManager.
+        private let logger: ILogger
+        
         // MARK: - Initializer
         
         /// Initializes the `StreamFactory` and sets up a subscription to the service's subscriber count.
         /// This ensures that the factory is aware of the number of active observers and can manage resources accordingly.
-        init() {
+        init(logger: ILogger) {
+            self.logger = logger
             self.service = StreamRegistration()
             Task {
                 await self.service.subscriberCountPublisher
@@ -52,9 +56,7 @@ extension BluetoothLEManager {
         
         /// Deinitializer that logs the deinitialization process for debugging purposes.
         deinit {
-            #if DEBUG
-            print("Stream factory deinitialized")
-            #endif
+            logger.log("Stream factory deinitialized", level: .debug)
         }
         
         // MARK: - API

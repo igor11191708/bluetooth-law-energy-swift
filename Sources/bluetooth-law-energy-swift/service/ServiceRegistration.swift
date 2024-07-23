@@ -21,12 +21,16 @@ extension BluetoothLEManager {
         /// A dictionary to keep track of registered continuations.
         private var register: [UUID: CheckedContinuation<T, Error>] = [:]
         
+        /// Initializes the BluetoothLEManager.
+        private let logger: ILogger
+        
         // MARK: - Initializer
         
         /// Initializes the RegistrationService with a given service type.
         /// - Parameter type: The type of the service.
-        init(type: ServiceType) {
+        init(type: ServiceType, logger: ILogger) {
             self.type = type
+            self.logger = logger
         }
         
         // MARK: - API
@@ -86,9 +90,7 @@ extension BluetoothLEManager {
             
             add(continuation, for: id)
             
-            #if DEBUG
-            print("\(type.rawValue) \(name)")
-            #endif
+            logger.log("\(type.rawValue) \(name)", level: .debug)
             
             timeoutTask(for: id, timeout: timeout)
         }
@@ -114,10 +116,8 @@ extension BluetoothLEManager {
                 }
                 
                 remove(for: id)
-                
-                #if DEBUG
-                print("timeout \(type) \(id)")
-                #endif
+
+                logger.log("timeout \(type) \(id)", level: .debug)
                 
                 continuation.resume(throwing: Errors.timeout)
             }

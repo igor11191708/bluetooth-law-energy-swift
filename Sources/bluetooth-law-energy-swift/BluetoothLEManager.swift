@@ -9,6 +9,7 @@ import Combine
 import CoreBluetooth
 import retry_policy_service
 
+
 @available(macOS 12, iOS 15, tvOS 15.0, watchOS 8.0, *)
 public actor BluetoothLEManager: NSObject, ObservableObject, IBluetoothLEManager {
     
@@ -32,33 +33,34 @@ public actor BluetoothLEManager: NSObject, ObservableObject, IBluetoothLEManager
     /// Internal types and instances
     private typealias Delegate = BluetoothDelegate
     private let state = BluetoothLEManager.State()
-    private let stream = StreamFactory()
+    private let stream : StreamFactory
     private let centralManager: CBCentralManager
     private let delegateHandler: Delegate
     private var cancellables: Set<AnyCancellable> = []
     private let retry = RetryService(strategy: .exponential(retry: 3, multiplier: 2, duration: .seconds(3), timeout: .seconds(12)))
-    private let queue = DispatchQueue(label: "BluetoothLEManager-CBCentralManager-Queue", attributes: .concurrent)
+    private let queue = DispatchQueue(label: "BluetoothLEManager-CBCentralManager-Queue")
     
     private let cachedServices = CacheServices()
     
     /// Initializes the BluetoothLEManager.
-    public override init() {
-        delegateHandler = Delegate()
+    private let logger: ILogger
+    
+    /// Initializes the BluetoothLEManager with a logger.
+    public init(logger: ILogger) {
+        self.logger = logger
+        stream = StreamFactory(logger: logger)
+        delegateHandler = Delegate(logger: logger)
         centralManager = CBCentralManager(delegate: delegateHandler, queue: queue)
         super.init()
         Task {
             await setupSubscriptions() // Subscriptions for UI indicators So we can afford this init async
         }
-        #if DEBUG
-        print("BluetoothManager initialized on \(Date())")
-        #endif
+        logger.log("BluetoothManager initialized on \(Date())", level: .debug)
     }
 
     /// Deinitializes the BluetoothLEManager.
     deinit {
-        #if DEBUG
-        print("BluetoothManager deinitialized")
-        #endif
+        logger.log("BluetoothManager deinitialized", level: .debug)
     }
     
     // MARK: - API
@@ -183,7 +185,7 @@ public actor BluetoothLEManager: NSObject, ObservableObject, IBluetoothLEManager
         
         try Task.checkCancellation()
         
-        let delegate = PeripheralDelegate()
+        let delegate = PeripheralDelegate(logger: logger)
         peripheral.delegate = delegate
         let services = try await delegate.discoverServices(for: peripheral)
         
