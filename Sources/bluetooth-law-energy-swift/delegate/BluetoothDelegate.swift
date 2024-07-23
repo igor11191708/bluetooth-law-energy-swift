@@ -18,17 +18,24 @@ extension BluetoothLEManager {
         /// A subject to publish discovered Bluetooth peripherals.
         private let peripheralSubject = CurrentValueSubject<[CBPeripheral], Never>([])
                 
+        /// Service registration for connection-related actions.
         private let connection: ServiceRegistration<Void>
-        
+
+        /// Service registration for disconnection-related actions.
         private let disconnection: ServiceRegistration<Void>
-        
+
+        /// Logger instance for logging purposes.
         private let logger: ILogger
-        
+
+        /// Initializes the manager with a logger and sets up service registrations for connection and disconnection.
+        ///
+        /// - Parameter logger: The logger instance to be used for logging.
         public init(logger: ILogger) {
             self.logger = logger
             connection = .init(type: .connection, logger: logger)
             disconnection = .init(type: .disconnection, logger: logger)
         }
+        
         // MARK: - API
         
         /// Connects to a given peripheral.

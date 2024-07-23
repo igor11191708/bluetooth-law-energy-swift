@@ -11,10 +11,14 @@ import CoreBluetooth
 extension BluetoothLEManager {
     
     // Class to handle CB Peripheral Delegate
-    public class PeripheralDelegate: NSObject, CBPeripheralDelegate {
+    class PeripheralDelegate: NSObject, CBPeripheralDelegate {
        
+        /// Service registration for a specific action.
         private let service: ServiceRegistration<Void>
-        
+
+        /// Initializes the manager with a logger and sets up the service registration.
+        ///
+        /// - Parameter logger: The logger instance to be used for logging.
         init(logger: ILogger) {
             service = .init(type: .discovering, logger: logger)
         }
