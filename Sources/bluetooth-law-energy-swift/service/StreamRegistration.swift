@@ -61,12 +61,13 @@ extension BluetoothLEManager {
         /// Registers a new subscriber and immediately provides the current list of peripherals.
         ///
         /// - Parameters:
-        ///   - id: The UUID of the subscriber to register.
         ///   - continuation: The `PeripheralsContinuation` to handle the discovered peripherals.
-        public func register(with id: UUID, and continuation: PeripheralsContinuation) async {
+        public func register(_ continuation: PeripheralsContinuation) async -> UUID {
+            let id = UUID()
             subscribers[id] = continuation
             continuation.yield(await discoveredPeripherals)
             subscriberCountSubject.send(count)
+            return id
         }
         
         /// Unregisters a subscriber and updates the subscriber count.
@@ -95,8 +96,7 @@ extension BluetoothLEManager {
             AsyncStream<[CBPeripheral]> { [weak self] continuation in
                 guard let self = self else { return }
                 Task {
-                    let id = UUID()
-                    await self.register(with: id, and: continuation)
+                    let id = await self.register(continuation)
                     continuation.onTermination = { [weak self] _ in
                         guard let self = self else { return }
                         Task {
