@@ -148,8 +148,6 @@ public actor BluetoothLEManager: NSObject, ObservableObject, IBluetoothLEManager
             throw Errors.notConnected(peripheral.getName)
         }
         
-        try Task.checkCancellation()
-        
         return try await withCheckedThrowingContinuation { continuation in
             Task {
                 let id = peripheral.getId
