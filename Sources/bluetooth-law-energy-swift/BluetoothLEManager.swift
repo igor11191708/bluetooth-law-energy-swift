@@ -46,7 +46,8 @@ public actor BluetoothLEManager: NSObject, ObservableObject, IBluetoothLEManager
     private let logger: ILogger
     
     /// Initializes the BluetoothLEManager with a logger.
-    public init(logger: ILogger) {
+    public init(logger: ILogger?) {
+        let logger = logger ?? AppleLogger(subsystem: "BluetoothLEManager", category: "Bluetooth")
         self.logger = logger
         stream = StreamFactory(logger: logger)
         delegateHandler = Delegate(logger: logger)
