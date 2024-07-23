@@ -31,9 +31,10 @@ public actor BluetoothLEManager: NSObject, ObservableObject, IBluetoothLEManager
     private var getPeripheralPublisher: PeripheralPublisher { delegateHandler.peripheralPublisher }
     
     /// Internal types and instances
-
     @MainActor
     private let centralManager: CBCentralManager
+    @MainActor
+    private let cachedServices = CacheServices()
     
     private typealias Delegate = BluetoothDelegate
     private let state = BluetoothLEManager.State()
@@ -42,11 +43,6 @@ public actor BluetoothLEManager: NSObject, ObservableObject, IBluetoothLEManager
     private var cancellables: Set<AnyCancellable> = []
     private let retry = RetryService(strategy: .exponential(retry: 3, multiplier: 2, duration: .seconds(3), timeout: .seconds(12)))
     private let queue = DispatchQueue(label: "BluetoothLEManager-CBCentralManager-Queue")
-    
-    @MainActor
-    private let cachedServices = CacheServices()
-    
-    /// Initializes the BluetoothLEManager.
     private let logger: ILogger
     
     /// Initializes the BluetoothLEManager with a logger.
@@ -77,19 +73,22 @@ public actor BluetoothLEManager: NSObject, ObservableObject, IBluetoothLEManager
         }
     }
     
-    /// Fetches services for a given peripheral, with optional caching and optional disconnection.
-    /// Apple’s documentation specifies that all Core Bluetooth interactions should be performed on the main thread to maintain thread safety and proper synchronization of Bluetooth events.
-    /// This includes interactions with CBCentralManager, such as connecting and disconnecting peripherals.
+    /// Discovers services for a given peripheral, with optional caching and optional disconnection.
+    ///
+    /// Apple’s documentation specifies that all Core Bluetooth interactions should be performed on the main thread to
+    /// maintain thread safety and proper synchronization of Bluetooth events. This includes interactions with
+    /// `CBCentralManager`, such as connecting and disconnecting peripherals.
+    ///
     /// - Parameters:
     ///   - peripheral: The `CBPeripheral` instance to fetch services for.
-    ///   - cache: A Boolean value indicating whether to use cached data.
-    ///   - disconnect: A Boolean value indicating whether to disconnect from the peripheral after fetching services.
+    ///   - cache: A Boolean value indicating whether to use cached data. Defaults to `true`.
+    ///   - disconnect: A Boolean value indicating whether to disconnect from the peripheral after fetching services. Defaults to `true`.
     /// - Returns: An array of `CBService` instances.
     /// - Throws: An error if the services could not be fetched.
     @MainActor
-    public func discoverServices(for peripheral: CBPeripheral, cache: Bool = true, disconnect: Bool = false) async throws -> [CBService] {
+    public func discoverServices(for peripheral: CBPeripheral, from cache: Bool = true, disconnect: Bool = true) async throws -> [CBService] {
         defer {
-            if disconnect{
+            if disconnect {
                 centralManager.cancelPeripheralConnection(peripheral)
             }
         }
@@ -101,17 +100,18 @@ public actor BluetoothLEManager: NSObject, ObservableObject, IBluetoothLEManager
         for (_, delay) in retry.enumerated() {
             do {
                 return try await attemptFetchServices(for: peripheral, cache: cache)
-            } catch { }
+            } catch {
+                // Handle retry logic by continuing the loop
+            }
             
             try? await Task.sleep(nanoseconds: delay)
-
             
             if cache, let services = await cachedServices.fetch(for: peripheral) {
                 return services
             }
         }
         
-        // Final attempt to connect and discover services
+        // Final attempt to connect and discover services if previous attempts fail
         return try await attemptFetchServices(for: peripheral, cache: cache)
     }
     

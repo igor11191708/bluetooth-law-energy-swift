@@ -21,17 +21,20 @@ public protocol IBluetoothLEManager {
     @MainActor
     var peripheralsStream: AsyncStream<[CBPeripheral]>  { get async }
 
-    /// Fetches services for a given peripheral, with optional caching and optional disconnection.
-    /// Apple’s documentation specifies that all Core Bluetooth interactions should be performed on the main thread to maintain thread safety and proper synchronization of Bluetooth events.
-    /// This includes interactions with CBCentralManager, such as connecting and disconnecting peripherals.
+    /// Discovers services for a given peripheral, with optional caching and optional disconnection.
+    ///
+    /// Apple’s documentation specifies that all Core Bluetooth interactions should be performed on the main thread to
+    /// maintain thread safety and proper synchronization of Bluetooth events. This includes interactions with
+    /// `CBCentralManager`, such as connecting and disconnecting peripherals.
+    ///
     /// - Parameters:
     ///   - peripheral: The `CBPeripheral` instance to fetch services for.
-    ///   - cache: A Boolean value indicating whether to use cached data.
-    ///   - disconnect: A Boolean value indicating whether to disconnect from the peripheral after fetching services.
+    ///   - cache: A Boolean value indicating whether to use cached data. Defaults to `true`.
+    ///   - disconnect: A Boolean value indicating whether to disconnect from the peripheral after fetching services. Defaults to `true`.
     /// - Returns: An array of `CBService` instances.
     /// - Throws: An error if the services could not be fetched.
     @MainActor
-    func discoverServices(for peripheral: CBPeripheral, cache: Bool, disconnect: Bool) async throws -> [CBService]
+    func discoverServices(for peripheral: CBPeripheral, from cache: Bool, disconnect: Bool) async throws -> [CBService]
 
     /// Connects to a specific peripheral.
     /// Always use the same CBCentralManager instance to manage connections and disconnections for a peripheral to avoid errors and ensure correct behavior.

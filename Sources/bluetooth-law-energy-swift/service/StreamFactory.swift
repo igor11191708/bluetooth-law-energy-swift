@@ -34,7 +34,6 @@ extension BluetoothLEManager {
         /// Ensures that subscriptions are cancelled when they are no longer needed.
         private var cancellables = Set<AnyCancellable>()
         
-        /// Initializes the BluetoothLEManager.
         private let logger: ILogger
         
         // MARK: - Initializer
