@@ -177,7 +177,6 @@ public actor BluetoothLEManager: NSObject, ObservableObject, IBluetoothLEManager
         return try await discover(for: peripheral, cache: cache)
     }
     
-    
     /// Discovers services for a connected peripheral.
     ///
     /// - Parameters:
