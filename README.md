@@ -61,7 +61,7 @@ The following blocks show a workflow for using CBCentralManager. The flowchart p
 | `bleState`          | Property | A subject that publishes the BLE state changes.                                                                         | `CurrentValueSubject<BLEState, Never>` |
 | `peripheralsStream` | Property | Provides an asynchronous stream of discovered Bluetooth peripherals.                                                    | `AsyncStream<[CBPeripheral]>`          |
 | `discoverServices`  | Method   | Fetches services for a given peripheral, with optional caching and optional disconnection. | `async throws -> [CBService]` |
-| `connect`           | Method   | Connects to a specific peripheral. 🟡 Always use the same CBCentralManager instance to manage connections and disconnections for a peripheral to avoid errors and ensure correct behavior. | `async throws -> Void`    |
+| `connect`           | Method   | Connects to a specific peripheral. 🟡 Always use the same BluetoothLEManager instance to manage connections and disconnections for a peripheral to avoid errors and ensure correct behavior. | `async throws -> Void`    |
 | `disconnect`        | Method   | Disconnects from a specific peripheral. | `async throws -> Void`    |
 
 Apple’s documentation specifies that all Core Bluetooth interactions should be performed on the main thread to maintain thread safety and proper synchronization of Bluetooth events. This includes interactions with CBCentralManager, such as connecting and disconnecting peripherals.
