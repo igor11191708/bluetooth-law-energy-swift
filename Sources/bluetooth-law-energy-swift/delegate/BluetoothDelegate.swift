@@ -9,7 +9,8 @@ import Combine
 import CoreBluetooth
 
 extension BluetoothLEManager {
-
+    
+    /// BluetoothDelegate is a final class that conforms to CBCentralManagerDelegate for handling Bluetooth interactions.
     final class BluetoothDelegate: NSObject, CBCentralManagerDelegate {
         
         /// A subject to publish Bluetooth state updates.

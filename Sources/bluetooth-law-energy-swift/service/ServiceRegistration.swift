@@ -9,6 +9,7 @@ import CoreBluetooth
 
 extension BluetoothLEManager {
     
+    /// Actor responsible for managing service registration for Bluetooth LE operations.
     actor ServiceRegistration<T> {
         
         // MARK: - Public Properties

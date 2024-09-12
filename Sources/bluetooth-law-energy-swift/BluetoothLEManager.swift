@@ -9,6 +9,7 @@ import Combine
 import CoreBluetooth
 import retry_policy_service
 
+/// Manages Bluetooth Low Energy (BLE) interactions using Combine and CoreBluetooth.
 @available(macOS 12, iOS 15, tvOS 15.0, watchOS 8.0, *)
 public actor BluetoothLEManager: NSObject, ObservableObject, IBluetoothLEManager {
     

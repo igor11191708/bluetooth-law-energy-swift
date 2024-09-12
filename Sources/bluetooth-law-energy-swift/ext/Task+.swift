@@ -7,6 +7,8 @@
 
 import Foundation
 
+
+/// Extends Task to provide a sleep function when used in an async context.
 @available(iOS, introduced: 15.0)
 @available(macOS, introduced: 12.0)
 @available(watchOS, introduced: 8.0)

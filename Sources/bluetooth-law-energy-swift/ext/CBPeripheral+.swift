@@ -7,6 +7,8 @@
 
 import CoreBluetooth
 
+
+/// Extension of CBPeripheral to include computed properties related to the connection state and identity of Bluetooth peripherals.
 @available(macOS 12, iOS 15, tvOS 15.0, watchOS 8.0, *)
 public extension CBPeripheral {
     

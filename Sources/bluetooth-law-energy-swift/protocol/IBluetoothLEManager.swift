@@ -9,8 +9,8 @@ import Foundation
 import Combine
 import CoreBluetooth
 
-@available(macOS 12, iOS 15, tvOS 15.0, watchOS 8.0, *)
 /// A protocol defining the Bluetooth LE manager functionality.
+@available(macOS 12, iOS 15, tvOS 15.0, watchOS 8.0, *)
 public protocol IBluetoothLEManager {
 
     /// A subject that publishes the BLE state changes.

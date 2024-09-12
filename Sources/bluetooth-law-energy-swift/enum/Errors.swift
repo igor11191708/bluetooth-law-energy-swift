@@ -9,6 +9,7 @@ import CoreBluetooth
 
 public extension BluetoothLEManager {
     
+    /// Errors enum represents possible errors within Bluetooth operations, conforming to Error and LocalizedError protocols.
     enum Errors: Error, LocalizedError {
         
         /// Error encountered while discovering services.
@@ -38,6 +39,7 @@ public extension BluetoothLEManager {
         /// Error encountered while disconnecting.
         case disconnection(CBPeripheral, Error?)
         
+        /// Text description
         public var errorDescription: String? {
             switch self {
             case .discoveringServices(let message, let error):

@@ -7,6 +7,7 @@
 
 import Foundation
 
+/// Represents the state of Bluetooth connectivity and permissions.
 @available(macOS 12, iOS 15, tvOS 15.0, watchOS 8.0, *)
 public struct BLEState {
     
