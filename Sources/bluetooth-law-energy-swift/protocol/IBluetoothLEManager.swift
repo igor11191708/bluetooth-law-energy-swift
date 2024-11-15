@@ -14,13 +14,12 @@ import CoreBluetooth
 public protocol IBluetoothLEManager {
 
     /// A subject that publishes the BLE state changes.
-    
     var bleState: CurrentValueSubject<BLEState, Never> { get }
 
     /// Provides an asynchronous stream of discovered Bluetooth peripherals.
-    var peripheralsStream: AsyncStream<[CBPeripheral]>  { get async }
+    var peripheralsStream: AsyncStream<[CBPeripheral]> { get async }
 
-    /// Discovers services for a given peripheral, with optional caching and optional disconnection.
+    /// Discovers services for a given peripheral, with optional caching and disconnection.
     /// - Parameters:
     ///   - peripheral: The `CBPeripheral` instance to fetch services for.
     ///   - cache: A Boolean value indicating whether to use cached data. Defaults to `true`.
