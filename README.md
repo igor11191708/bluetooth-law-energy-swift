@@ -6,6 +6,8 @@
 ## [Swiftui example](https://github.com/The-Igor/bluetooth-law-energy_example)
 
 
+## [Documentation(API)](https://swiftpackageindex.com/igor11191708/bluetooth-law-energy-swift/main/documentation/bluetooth_law_energy_swift)
+
 ![macOS 11](https://github.com/The-Igor/bluetooth-law-energy-swift/blob/main/img/ble_mac.png) 
 
 ## Main Features 
