@@ -3,7 +3,7 @@
 
 [![](https://img.shields.io/endpoint?url=https%3A%2F%2Fswiftpackageindex.com%2Fapi%2Fpackages%2Fswiftuiux%2Fbluetooth-law-energy-swift%2Fbadge%3Ftype%3Dplatforms)](https://swiftpackageindex.com/swiftuiux/bluetooth-law-energy-swift)
 
-## [Swiftui example](https://github.com/swiftuiux/bluetooth-law-energy_example)
+## [Swiftui example](https://github.com/swiftuiux/bluetooth-law-energy-swiftui-example)
 
 
 ## [Documentation(API)](https://swiftpackageindex.com/swiftuiux/bluetooth-law-energy-swift/main/documentation/bluetooth_law_energy_swift)
@@ -54,7 +54,7 @@ The following blocks show a workflow for using CBCentralManager. The flowchart p
    - Scanning for peripherals starts only when at least one subscriber is connected through the `peripheralsStream` method to get the list of peripherals. This ensures that scanning is active when there is a need for peripheral data.
    - When the number of subscribers drops to zero, the manager stops scanning to conserve resources and battery life. This allows efficient use of the device's Bluetooth capabilities.
 5. **Specifics of Authorizing Access to Bluetooth and Checking Availability for macOS**:
-   - Detailed guidance on these aspects can be found [here](https://github.com/swiftuiux/bluetooth-law-energy_example).
+   - Detailed guidance on these aspects can be found [here](https://github.com/swiftuiux/bluetooth-law-energy-swiftui-example).
    
 ## Public API
 
