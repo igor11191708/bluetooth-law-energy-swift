@@ -11,10 +11,9 @@ import retry_policy_service
 
 /// Manages Bluetooth Low Energy (BLE) interactions using Combine and CoreBluetooth.
 @available(macOS 12, iOS 15, tvOS 15.0, watchOS 8.0, *)
-public actor BluetoothLEManager: NSObject, ObservableObject, IBluetoothLEManager {
+public final class BluetoothLEManager: NSObject, ObservableObject, IBluetoothLEManager {
     
     /// A subject that publishes the BLE state changes to the main actor.
-    @MainActor
     public let bleState: CurrentValueSubject<BLEState, Never> = .init(.init())
     
     /// Internal state variables
@@ -43,7 +42,6 @@ public actor BluetoothLEManager: NSObject, ObservableObject, IBluetoothLEManager
     private let logger: ILogger
     
     /// Initializes the BluetoothLEManager with a logger.
-    /// In Swift 6 and later, calling actor-isolated methods directly from synchronous contexts like initializers, which are not part of the actor’s context, is prohibited to maintain the integrity of the actor’s state.
     public init(logger: ILogger?, queue : DispatchQueue? = nil) {
    
         let logger = logger ?? AppleLogger(subsystem: "BluetoothLEManager", category: "Bluetooth")
@@ -54,9 +52,7 @@ public actor BluetoothLEManager: NSObject, ObservableObject, IBluetoothLEManager
         
         super.init()
         
-        Task { [weak self] in
-            await self?.setupSubscriptions()
-        }
+        setupSubscriptions()
         
         logger.log("BluetoothManager initialized on \(Date())", level: .debug)
     }
@@ -212,12 +208,11 @@ public actor BluetoothLEManager: NSObject, ObservableObject, IBluetoothLEManager
         
         Publishers.CombineLatest(getStatePublisher, stream.subscriberCountPublisher)
             .receiveOnMainAndEraseToAnyPublisher()
+            .receive(on: DispatchQueue.main)
             .sink { [weak self] state, subscriberCount in
                 guard let self = self else { return }
-                Task(priority: .userInitiated) {
-                    let state = await self.checkForScan(state, subscriberCount)
-                    await MainActor.run { self.bleState.send(state) }
-                }
+                    let state = self.checkForScan(state, subscriberCount)
+                    self.bleState.send(state)
             }
             .store(in: &cancellables)
     }
@@ -242,7 +237,7 @@ public actor BluetoothLEManager: NSObject, ObservableObject, IBluetoothLEManager
     ///   - state: The current `CBManagerState`.
     ///   - subscriberCount: The number of subscribers.
     /// - Returns: The updated `BLEState`.
-    private func checkForScan(_ state: CBManagerState, _ subscriberCount: Int) async -> BLEState {
+    private func checkForScan(_ state: CBManagerState, _ subscriberCount: Int) -> BLEState {
         if !checkIfBluetoothReady {
             stopScanning()
         } else {
