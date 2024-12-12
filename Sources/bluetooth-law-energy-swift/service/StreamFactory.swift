@@ -43,6 +43,7 @@ extension BluetoothLEManager {
         init(logger: ILogger) {
             self.logger = logger
             service = StreamRegistration(logger: logger)
+            // TODO: Refactor this code
             Task {
                 await self.service.subscriberCountPublisher
                     .sink { [weak self] count in
