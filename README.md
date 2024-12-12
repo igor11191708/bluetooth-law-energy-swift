@@ -21,7 +21,6 @@
 | **Peripheral Management** | Manage discovered Bluetooth peripherals, including connection and disconnection. |
 | **Multi-platform** | Support for multiple platforms, ensuring compatibility across different devices and operating systems. |
 | **Utilizing Modern Concurrency in Swift with Async Stream** | Employ modern concurrency techniques in Swift, such as AsyncStream, for efficient and responsive Bluetooth operations. |
-| **Asynchronous Stream Sharing** | Share asynchronous streams between different views, allowing multiple UI components to access and display the list of available Bluetooth devices simultaneously. |
 | **Scanning of Available Devices** | Scan for and discover available Bluetooth devices in the vicinity. |
 | **Fetching Services for Discovered Devices Asynchronously** | Fetch and manage services for discovered Bluetooth devices using asynchronous methods, ensuring smooth and non-blocking operations. |
 
