@@ -39,7 +39,9 @@ extension BluetoothLEManager {
         
         /// Provides an asynchronous stream of arrays of discovered peripherals.
         public var stream: AsyncStream<[CBPeripheral]> {
-            createPeripheralStream()
+            get async{
+                await createPeripheralStream()
+            }
         }
         
         private let logger: ILogger
@@ -92,19 +94,19 @@ extension BluetoothLEManager {
         /// Creates and returns an `AsyncStream` of peripherals, managing the lifecycle events.
         ///
         /// - Returns: An `AsyncStream` of `[CBPeripheral]` to provide peripheral data.
-        private func createPeripheralStream() -> AsyncStream<[CBPeripheral]> {
-            AsyncStream<[CBPeripheral]> { [weak self] continuation in
-                guard let self = self else { return }
+        private func createPeripheralStream() async -> AsyncStream<[CBPeripheral]>  {
+            let (newStream, newContinuation) = AsyncStream<[CBPeripheral]>.makeStream(of: [CBPeripheral].self)
+            
+            let id = await register(newContinuation)
+
+            newContinuation.onTermination = { [weak self] _ in
                 Task {
-                    let id = await self.register(continuation)
-                    continuation.onTermination = { [weak self] _ in
-                        guard let self = self else { return }
-                        Task {
-                            await self.unregister(with: id)
-                        }
-                    }
+                    guard let self = self else { return }
+                    await self.unregister(with: id)
                 }
             }
+            
+            return newStream
         }
     }
 }
