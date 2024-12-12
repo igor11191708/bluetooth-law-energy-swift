@@ -11,10 +11,9 @@ import retry_policy_service
 
 /// Manages Bluetooth Low Energy (BLE) interactions using Combine and CoreBluetooth.
 @available(macOS 12, iOS 15, tvOS 15.0, watchOS 8.0, *)
-public final class BluetoothLEManager: NSObject, ObservableObject, @preconcurrency IBluetoothLEManager {
+public final class BluetoothLEManager: NSObject, ObservableObject, IBluetoothLEManager {
     
     /// A subject that publishes the BLE state changes to the main actor.
-    @MainActor
     public let bleState: CurrentValueSubject<BLEState, Never> = .init(.init())
     
     /// Internal state variables
@@ -68,7 +67,8 @@ public final class BluetoothLEManager: NSObject, ObservableObject, @preconcurren
     /// Provides a stream of discovered peripherals.
     public var peripheralsStream: AsyncStream<[CBPeripheral]> {
         get async{
-            await stream.peripheralsStream()
+            await stream.ensureSubscriptionsSetup()
+            return await stream.peripheralsStream()
         }
     }
     
