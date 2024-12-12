@@ -34,11 +34,7 @@ extension BluetoothLEManager {
         /// Ensures that subscriptions are cancelled when they are no longer needed.
         private var cancellables = Set<AnyCancellable>()
         
-        /// A logger instance for recording debugging information, warnings, and errors.
         private let logger: ILogger
-        
-        /// A flag indicating whether the subscriptions have already been set up.
-        private var didSetup = false
         
         // MARK: - Initializer
         
@@ -47,6 +43,15 @@ extension BluetoothLEManager {
         init(logger: ILogger) {
             self.logger = logger
             service = StreamRegistration(logger: logger)
+            // TODO: Refactor this code
+            Task {
+                await self.service.subscriberCountPublisher
+                    .sink { [weak self] count in
+                        guard let self = self else { return }
+                        self.subscriberCountSubject.send(count)
+                    }
+                    .store(in: &self.cancellables)
+            }
         }
         
         /// Deinitializer that logs the deinitialization process for debugging purposes.
@@ -55,13 +60,6 @@ extension BluetoothLEManager {
         }
         
         // MARK: - API
-        
-        /// Ensures that subscriptions are set up only once.
-        public func ensureSubscriptionsSetup() async {
-            guard !didSetup else { return }
-            didSetup = true
-            await setupSubscriptions()
-        }
         
         /// Provides an asynchronous stream of discovered peripherals using the service layer.
         /// This method returns a stream that emits arrays of `CBPeripheral` objects as they are discovered.
@@ -76,20 +74,6 @@ extension BluetoothLEManager {
         @MainActor
         public func updatePeripherals(_ peripherals: [CBPeripheral]) async {
             await service.notifySubscribers(peripherals)
-        }
-        
-        // MARK: - Private
-        
-        /// Sets up the subscription to the service's `subscriberCountPublisher`
-        /// and updates the `subscriberCountSubject` whenever the subscriber count changes.
-        /// This method should be called only once to avoid multiple subscriptions.
-        private func setupSubscriptions() async{
-            await self.service.subscriberCountPublisher
-                .sink { [weak self] count in
-                    guard let self = self else { return }
-                    self.subscriberCountSubject.send(count)
-                }
-                .store(in: &self.cancellables)
         }
     }
 }
