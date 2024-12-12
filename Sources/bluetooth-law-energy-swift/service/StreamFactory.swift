@@ -34,6 +34,7 @@ extension BluetoothLEManager {
         /// Ensures that subscriptions are cancelled when they are no longer needed.
         private var cancellables = Set<AnyCancellable>()
         
+        /// A logger instance for recording debugging information, warnings, and errors.
         private let logger: ILogger
         
         // MARK: - Initializer
@@ -43,15 +44,7 @@ extension BluetoothLEManager {
         init(logger: ILogger) {
             self.logger = logger
             service = StreamRegistration(logger: logger)
-            // TODO: Refactor this code
-            Task {
-                await self.service.subscriberCountPublisher
-                    .sink { [weak self] count in
-                        guard let self = self else { return }
-                        self.subscriberCountSubject.send(count)
-                    }
-                    .store(in: &self.cancellables)
-            }
+            Task { await setupSubscriptions() }
         }
         
         /// Deinitializer that logs the deinitialization process for debugging purposes.
@@ -74,6 +67,19 @@ extension BluetoothLEManager {
         @MainActor
         public func updatePeripherals(_ peripherals: [CBPeripheral]) async {
             await service.notifySubscribers(peripherals)
+        }
+        
+        // MARK: - Private
+   
+        /// Sets up the subscription to the service's `subscriberCountPublisher`
+        private func setupSubscriptions() async{
+            // TODO: Refactor this code
+            await service.subscriberCountPublisher
+                .sink { [weak self] count in
+                    guard let self = self else { return }
+                    self.subscriberCountSubject.send(count)
+                }
+                .store(in: &self.cancellables)
         }
     }
 }
